@@ -1,0 +1,283 @@
+version: '3.8'
+
+# ============================================================
+# NetBIPI - Network & Infrastructure Business Intelligence Platform
+# ============================================================
+# Profiles:
+#   default    -> core only (postgres + backend + frontend)
+#   monitoring -> adds Zabbix (zabbix-mysql + zabbix-server + zabbix-web + zabbix-agent)
+#   itsm       -> adds GLPI (glpi-mariadb + glpi)
+#   full       -> all services
+#
+# Usage:
+#   docker-compose up -d                                    # Core only
+#   docker-compose --profile monitoring up -d              # Core + Zabbix
+#   docker-compose --profile itsm up -d                    # Core + GLPI
+#   docker-compose --profile full up -d                    # Everything
+# ============================================================
+
+services:
+
+  # ============================================================
+  # CORE - PostgreSQL
+  # ============================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: netbipi-postgres
+    environment:
+      POSTGRES_DB: netbipi
+      POSTGRES_USER: netbipi
+      POSTGRES_PASSWORD: netbipi123
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U netbipi"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - netbipi-net
+
+  # ============================================================
+  # CORE - Backend API
+  # ============================================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: netbipi-backend
+    environment:
+      - DATABASE_URL=postgresql://netbipi:netbipi123@postgres:5432/netbipi
+      - JWT_SECRET=${JWT_SECRET:-netbipi-production-secret-change-me}
+      - PORT=3001
+      - NODE_ENV=${NODE_ENV:-production}
+      - MOCK_INTEGRATIONS=${MOCK_INTEGRATIONS:-true}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost}
+      - ZABBIX_URL=http://zabbix-web:8080/api_jsonrpc.php
+      - ZABBIX_USER=${ZABBIX_USER:-Admin}
+      - ZABBIX_PASSWORD=${ZABBIX_PASSWORD:-zabbix}
+      - GLPI_URL=http://glpi/apirest.php
+      - GLPI_APP_TOKEN=${GLPI_APP_TOKEN:-netbipi-glpi-app-token}
+      - GLPI_USER_TOKEN=${GLPI_USER_TOKEN:-netbipi-glpi-user-token}
+      - ZABBIX_WEBHOOK_SECRET=${ZABBIX_WEBHOOK_SECRET:-netbipi-webhook-secret-2024}
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    cap_add:
+      - NET_RAW
+      - NET_ADMIN
+    restart: unless-stopped
+    networks:
+      - netbipi-net
+
+  # ============================================================
+  # CORE - Frontend
+  # ============================================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: netbipi-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - netbipi-net
+
+  # ============================================================
+  # MONITORING PROFILE - Zabbix MySQL
+  # ============================================================
+  zabbix-mysql:
+    image: mysql:8.0
+    container_name: netbipi-zabbix-mysql
+    profiles: [monitoring, full]
+    environment:
+      MYSQL_DATABASE: zabbix
+      MYSQL_USER: zabbix
+      MYSQL_PASSWORD: zabbix_pass
+      MYSQL_ROOT_PASSWORD: zabbix_root_pass
+    volumes:
+      - zabbix_mysql_data:/var/lib/mysql
+    command: >
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_bin
+      --default-authentication-plugin=mysql_native_password
+      --skip-log-bin
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "zabbix", "-pzabbix_pass"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+    restart: unless-stopped
+    networks:
+      - netbipi-net
+
+  # ============================================================
+  # MONITORING PROFILE - Zabbix Server
+  # ============================================================
+  zabbix-server:
+    image: zabbix/zabbix-server-mysql:alpine-7.0-latest
+    container_name: netbipi-zabbix-server
+    profiles: [monitoring, full]
+    environment:
+      DB_SERVER_HOST: zabbix-mysql
+      MYSQL_DATABASE: zabbix
+      MYSQL_USER: zabbix
+      MYSQL_PASSWORD: zabbix_pass
+      MYSQL_ROOT_PASSWORD: zabbix_root_pass
+      ZBX_ENABLE_SNMP_TRAPS: "true"
+      ZBX_STARTPOLLERS: "5"
+      ZBX_CACHESIZE: "32M"
+    ports:
+      - "10051:10051"
+    volumes:
+      - zabbix_server_data:/var/lib/zabbix
+      - ./zabbix/alertscripts:/usr/lib/zabbix/alertscripts
+      - ./zabbix/externalscripts:/usr/lib/zabbix/externalscripts
+    depends_on:
+      zabbix-mysql:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - netbipi-net
+
+  # ============================================================
+  # MONITORING PROFILE - Zabbix Web Frontend
+  # ============================================================
+  zabbix-web:
+    image: zabbix/zabbix-web-nginx-mysql:alpine-7.0-latest
+    container_name: netbipi-zabbix-web
+    profiles: [monitoring, full]
+    environment:
+      ZBX_SERVER_HOST: zabbix-server
+      ZBX_SERVER_PORT: "10051"
+      DB_SERVER_HOST: zabbix-mysql
+      MYSQL_DATABASE: zabbix
+      MYSQL_USER: zabbix
+      MYSQL_PASSWORD: zabbix_pass
+      PHP_TZ: America/Sao_Paulo
+      ZBX_MAXEXECUTIONTIME: "600"
+      ZBX_MEMORYLIMIT: "128M"
+    ports:
+      - "8080:8080"
+    depends_on:
+      - zabbix-server
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - netbipi-net
+
+  # ============================================================
+  # MONITORING PROFILE - Zabbix Agent (monitora o host)
+  # ============================================================
+  zabbix-agent:
+    image: zabbix/zabbix-agent:alpine-7.0-latest
+    container_name: netbipi-zabbix-agent
+    profiles: [monitoring, full]
+    environment:
+      ZBX_HOSTNAME: netbipi-docker-host
+      ZBX_SERVER_HOST: zabbix-server
+      ZBX_SERVER_PORT: "10051"
+      ZBX_PASSIVE_ALLOW: "true"
+      ZBX_ACTIVE_ALLOW: "true"
+    ports:
+      - "10050:10050"
+    depends_on:
+      - zabbix-server
+    restart: unless-stopped
+    networks:
+      - netbipi-net
+    privileged: true
+    volumes:
+      - /proc:/proc:ro
+      - /sys:/sys:ro
+
+  # ============================================================
+  # ITSM PROFILE - GLPI MariaDB
+  # ============================================================
+  glpi-mariadb:
+    image: mariadb:10.11
+    container_name: netbipi-glpi-mariadb
+    profiles: [itsm, full]
+    environment:
+      MARIADB_DATABASE: glpi
+      MARIADB_USER: glpi
+      MARIADB_PASSWORD: glpi_pass
+      MARIADB_ROOT_PASSWORD: glpi_root_pass
+      MARIADB_AUTO_UPGRADE: "1"
+    volumes:
+      - glpi_mariadb_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+    restart: unless-stopped
+    networks:
+      - netbipi-net
+
+  # ============================================================
+  # ITSM PROFILE - GLPI Web Application
+  # ============================================================
+  glpi:
+    image: diouxx/glpi:latest
+    container_name: netbipi-glpi
+    profiles: [itsm, full]
+    environment:
+      MARIADB_HOST: glpi-mariadb
+      MARIADB_PORT: "3306"
+      MARIADB_DATABASE: glpi
+      MARIADB_USER: glpi
+      MARIADB_PASSWORD: glpi_pass
+      TIMEZONE: America/Sao_Paulo
+    ports:
+      - "8081:80"
+    depends_on:
+      glpi-mariadb:
+        condition: service_healthy
+    volumes:
+      - glpi_files:/var/www/html/glpi/files
+      - glpi_plugins:/var/www/html/glpi/plugins
+      - glpi_config:/var/www/html/glpi/config
+    restart: unless-stopped
+    networks:
+      - netbipi-net
+
+# ============================================================
+# NETWORKS
+# ============================================================
+networks:
+  netbipi-net:
+    driver: bridge
+    name: netbipi-network
+
+# ============================================================
+# VOLUMES
+# ============================================================
+volumes:
+  postgres_data:
+    driver: local
+  zabbix_mysql_data:
+    driver: local
+  zabbix_server_data:
+    driver: local
+  glpi_mariadb_data:
+    driver: local
+  glpi_files:
+    driver: local
+  glpi_plugins:
+    driver: local
+  glpi_config:
+    driver: local

@@ -1,0 +1,82 @@
+# ============================================================
+# NetBIPI - .gitignore
+# ============================================================
+
+# Dependências
+node_modules/
+*/node_modules/
+**/node_modules/
+
+# Build
+dist/
+build/
+*/dist/
+*/build/
+
+# Variáveis de ambiente (NUNCA subir)
+.env
+.env.local
+.env.*.local
+backend/.env
+frontend/.env
+*.env
+
+# Tokens gerados (NUNCA subir)
+glpi/setup/.tokens
+*.tokens
+*.secret
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# TypeScript cache
+*.tsbuildinfo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+ehthumbs.db
+
+# IDE
+.vscode/settings.json
+.vscode/launch.json
+.idea/
+*.swp
+*.swo
+*.suo
+
+# Claude Code (ferramenta de desenvolvimento)
+.claude/
+
+# Docker volumes locais
+postgres_data/
+zabbix_mysql_data/
+glpi_mariadb_data/
+
+# Temporários
+*.tmp
+*.temp
+tmp/
+temp/
+
+# Coverage
+coverage/
+*.lcov
+.nyc_output/
+
+# Cache
+.cache/
+.parcel-cache/
+.vite/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
