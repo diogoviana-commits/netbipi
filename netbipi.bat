@@ -2,6 +2,8 @@
 chcp 65001 >nul
 setlocal EnableExtensions DisableDelayedExpansion
 cd /d "%~dp0"
+set "DOCKER_CLIENT_TIMEOUT=15"
+set "COMPOSE_HTTP_TIMEOUT=15"
 
 set "PROJECT_NAME="
 for %%I in ("%CD%") do set "PROJECT_NAME=%%~nxI"
@@ -74,7 +76,7 @@ if not errorlevel 1 (
 exit /b 1
 
 :EnsureDocker
-docker info >nul 2>&1
+call :IsDockerDesktopRunning
 if not errorlevel 1 exit /b 0
 
 echo.
@@ -90,7 +92,11 @@ if errorlevel 1 (
     exit /b 1
 )
 
-call :WaitDocker
+call :WaitDockerDesktop
+exit /b %errorlevel%
+
+:IsDockerDesktopRunning
+tasklist /FI "IMAGENAME eq Docker Desktop.exe" /NH | findstr /I /C:"Docker Desktop.exe" >nul
 exit /b %errorlevel%
 
 :TryStartDockerDesktop
@@ -106,17 +112,17 @@ for %%P in (
 )
 exit /b 1
 
-:WaitDocker
+:WaitDockerDesktop
 echo  Aguardando Docker iniciar...
 echo.
-for /l %%I in (1,1,12) do (
-    docker info >nul 2>&1
+for /l %%I in (1,1,24) do (
+    call :IsDockerDesktopRunning
     if not errorlevel 1 (
-        echo  Docker pronto^!
+        echo  Docker Desktop pronto^!
         exit /b 0
     )
-    if %%I lss 12 (
-        <nul set /p "=  Tentativa %%I/12..."
+    if %%I lss 24 (
+        <nul set /p "=  Tentativa %%I/24..."
         timeout /t 5 >nul
         echo.
     )
@@ -130,6 +136,11 @@ exit /b 1
 :RunCompose
 %COMPOSE_CMD% %*
 exit /b %errorlevel%
+
+:RunComposeUp
+echo  Iniciando containers em background...
+start "" /min cmd /c "%COMPOSE_CMD% %*"
+exit /b 0
 
 :ContainerRunning
 docker ps --format "{{.Names}}" | findstr /i /x "%~1" >nul
@@ -159,30 +170,10 @@ exit /b %errorlevel%
 
 :WaitBackend
 echo.
-echo  Aguardando backend ficar disponivel...
+echo  Aguardando backend iniciar...
 echo.
-
-where curl >nul 2>&1
-if errorlevel 1 (
-    echo  [AVISO] curl nao encontrado no PATH. Aguardando 30 segundos...
-    echo.
-    for /l %%I in (1,1,10) do timeout /t 3 >nul
-    exit /b 0
-)
-
-for /l %%I in (1,1,30) do (
-    curl -fsS http://localhost:3001/health >nul 2>&1
-    if not errorlevel 1 (
-        echo  Backend pronto^!
-        exit /b 0
-    )
-    if %%I lss 30 (
-        <nul set /p "=  Aguardando... tentativa %%I/30"
-        timeout /t 3 >nul
-        echo.
-    )
-)
-echo  [AVISO] Backend demorou mais que o esperado. Verifique os logs ^(opcao 7^).
+timeout /t 1 >nul
+echo  Se a pagina ainda nao abriu totalmente, atualize em alguns segundos.
 echo.
 exit /b 0
 
@@ -199,10 +190,10 @@ if errorlevel 1 goto MENU
 echo.
 echo  Iniciando NetBIPI ^(somente hub - ambiente local^)...
 echo.
-call :RunCompose up -d --build
+call :RunComposeUp up -d
 if errorlevel 1 goto COMPOSE_FAILED
-call :WaitBackend
 call :OpenBrowser http://localhost
+call :WaitBackend
 goto MENU
 
 :START_MONITORING
@@ -211,15 +202,15 @@ if errorlevel 1 goto MENU
 echo.
 echo  Iniciando NetBIPI + Zabbix...
 echo.
-call :RunCompose --profile monitoring up -d --build
+call :RunComposeUp --profile monitoring up -d
 if errorlevel 1 goto COMPOSE_FAILED
-call :WaitBackend
 echo.
 echo  Servicos disponiveis:
 echo    NetBIPI  -^> http://localhost
 echo    Zabbix   -^> http://localhost:8080  ^(Admin / zabbix^)
 echo.
 call :OpenBrowser http://localhost
+call :WaitBackend
 goto MENU
 
 :START_ITSM
@@ -228,15 +219,15 @@ if errorlevel 1 goto MENU
 echo.
 echo  Iniciando NetBIPI + GLPI...
 echo.
-call :RunCompose --profile itsm up -d --build
+call :RunComposeUp --profile itsm up -d
 if errorlevel 1 goto COMPOSE_FAILED
-call :WaitBackend
 echo.
 echo  Servicos disponiveis:
 echo    NetBIPI  -^> http://localhost
 echo    GLPI     -^> http://localhost:8081  ^(glpi / glpi^)
 echo.
 call :OpenBrowser http://localhost
+call :WaitBackend
 goto MENU
 
 :START_FULL
@@ -246,9 +237,8 @@ echo.
 echo  Iniciando TODOS os servicos ^(NetBIPI + Zabbix + GLPI^)...
 echo  Isso pode levar alguns minutos na primeira execucao.
 echo.
-call :RunCompose --profile full up -d --build
+call :RunComposeUp --profile full up -d
 if errorlevel 1 goto COMPOSE_FAILED
-call :WaitBackend
 echo.
 echo  ================================================================
 echo   Todos os servicos iniciados^!
@@ -262,6 +252,7 @@ echo.
 echo  Dica: Use a opcao [5] para configurar as integracoes automaticamente.
 echo.
 call :OpenBrowser http://localhost
+call :WaitBackend
 pause
 goto MENU
 
@@ -409,12 +400,13 @@ if errorlevel 1 goto MENU
 echo.
 echo  Reconstruindo e reiniciando backend...
 echo.
-call :RunCompose up -d --build backend
+call :RunComposeUp up -d --build backend
 if errorlevel 1 goto COMPOSE_FAILED
-call :WaitBackend
 echo.
 echo  Backend reiniciado.
 echo.
+call :OpenBrowser http://localhost
+call :WaitBackend
 pause
 goto MENU
 
@@ -436,10 +428,8 @@ echo  Removendo volume do banco...
 docker volume rm "%PROJECT_NAME%_postgres_data" >nul 2>&1
 
 echo  Reiniciando NetBIPI...
-call :RunCompose up -d --build
+call :RunComposeUp up -d
 if errorlevel 1 goto COMPOSE_FAILED
-call :WaitBackend
-
 echo.
 echo  ================================================================
 echo   Banco resetado^! Credenciais:
@@ -449,6 +439,7 @@ echo     n2@netbipi.local     /  analyst123
 echo  ================================================================
 echo.
 call :OpenBrowser http://localhost
+call :WaitBackend
 pause
 goto MENU
 
