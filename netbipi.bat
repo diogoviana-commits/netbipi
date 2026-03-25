@@ -1,6 +1,6 @@
 @echo off
 chcp 65001 >nul
-setlocal enabledelayedexpansion
+setlocal
 cd /d "%~dp0"
 
 :: ============================================================
@@ -51,7 +51,7 @@ goto MENU
 :: ============================================================
 :VERIFICAR_DOCKER
 :: ============================================================
-docker info >nul 2>&1
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\check-docker.ps1" >nul 2>&1
 if %ERRORLEVEL% equ 0 exit /b 0
 
 echo.
@@ -94,7 +94,7 @@ if %TENTATIVA% gtr 20 (
 )
 docker info >nul 2>&1
 if %ERRORLEVEL% equ 0 (
-    echo  Docker pronto!
+    echo  Docker pronto^!
     exit /b 0
 )
 <nul set /p "=  Tentativa %TENTATIVA%/20..."
@@ -181,7 +181,7 @@ if %ERRORLEVEL% neq 0 (
 call :AGUARDAR_BACKEND
 echo.
 echo  ================================================================
-echo   Todos os servicos iniciados!
+echo   Todos os servicos iniciados^!
 echo  ================================================================
 echo.
 echo    NetBIPI  -^> http://localhost         ^(admin@netbipi.local / admin123^)
@@ -233,14 +233,14 @@ echo.
 echo  [2/2] Configurando GLPI via Docker...
 docker exec netbipi-glpi-mariadb mysql -u glpi -pglpi_pass glpi -e "UPDATE glpi_configs SET value='1' WHERE context='core' AND name='enable_api'; UPDATE glpi_configs SET value='1' WHERE context='core' AND name='enable_api_login_credentials'; UPDATE glpi_configs SET value='1' WHERE context='core' AND name='enable_api_login_external_token'; DELETE FROM glpi_apiclient WHERE name='NetBIPI Integration'; INSERT INTO glpi_apiclient (entities_id,name,app_token,app_token_date,ipv4_range_start,ipv4_range_end,is_active,comment,date_creation,date_mod) VALUES (0,'NetBIPI Integration','netbipi-glpi-app-token',NOW(),0,4294967295,1,'NetBIPI Hub',NOW(),NOW()); UPDATE glpi_users SET api_token='netbipi-glpi-user-token',api_token_date=NOW() WHERE name IN ('glpi','admin') LIMIT 1;" 2>nul
 if %ERRORLEVEL% equ 0 (
-    echo  GLPI configurado com sucesso!
+    echo  GLPI configurado com sucesso^!
 ) else (
     echo  [AVISO] GLPI pode nao estar pronto ainda. Tente novamente em 2 minutos.
 )
 
 echo.
 echo  ================================================================
-echo   Configuracao concluida!
+echo   Configuracao concluida^!
 echo  ================================================================
 echo.
 echo   Para ativar as integracoes reais, mantenha MOCK_INTEGRATIONS=false:
@@ -334,7 +334,7 @@ if %TENTATIVA% gtr 30 (
 )
 curl -s http://localhost:3001/health >nul 2>&1
 if %ERRORLEVEL% equ 0 (
-    echo  Backend pronto!
+    echo  Backend pronto^!
     exit /b 0
 )
 <nul set /p "=  Aguardando... tentativa %TENTATIVA%/30"
@@ -375,7 +375,7 @@ call :AGUARDAR_BACKEND
 
 echo.
 echo  ================================================================
-echo   Banco resetado! Credenciais:
+echo   Banco resetado^! Credenciais:
 echo     admin@netbipi.local  /  admin123
 echo     n1@netbipi.local     /  analyst123
 echo     n2@netbipi.local     /  analyst123
@@ -424,6 +424,6 @@ goto MENU
 :FIM
 :: ============================================================
 echo.
-echo  Ate logo!
+echo  Ate logo^!
 echo.
 exit /b 0
