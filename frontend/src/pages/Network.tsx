@@ -195,6 +195,9 @@ const Network: React.FC = () => {
                 Executar
               </Button>
             </div>
+            <p className="mt-2 text-xs text-gray-500">
+              O teste tenta ICMP primeiro. Se a rede bloquear ICMP, o backend tenta TCP em portas comuns antes de marcar falha.
+            </p>
             <ResultBlock result={pingResult} loading={pingLoading} />
           </div>
 

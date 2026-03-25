@@ -27,6 +27,49 @@ const savesDiagnostic = async (
   }
 };
 
+const TCP_FALLBACK_PORTS = [443, 80, 22, 53];
+
+const probeTcpReachability = async (target: string): Promise<{ port: number; latency: number } | null> => {
+  for (const port of TCP_FALLBACK_PORTS) {
+    try {
+      const start = Date.now();
+      await new Promise<void>((resolve, reject) => {
+        const socket = new net.Socket();
+        socket.setTimeout(2500);
+        socket.connect(port, target, () => {
+          socket.destroy();
+          resolve();
+        });
+        socket.on('timeout', () => {
+          socket.destroy();
+          reject(new Error('timeout'));
+        });
+        socket.on('error', (err) => {
+          socket.destroy();
+          reject(err);
+        });
+      });
+      return { port, latency: Date.now() - start };
+    } catch {
+      // Tenta a proxima porta comum.
+    }
+  }
+
+  return null;
+};
+
+const isPingReply = (output: string): boolean => {
+  const text = output.toLowerCase();
+  return (
+    text.includes('bytes from') ||
+    text.includes('reply from') ||
+    text.includes('resposta de') ||
+    text.includes('0% packet loss') ||
+    text.includes('0% de perda') ||
+    /received\s*=\s*[1-9]/i.test(output)
+  );
+};
+
 const findAssetByTarget = async (target: string): Promise<string | undefined> => {
   const result = await query(
     'SELECT id FROM assets WHERE ip_address = $1 OR hostname = $1',
@@ -61,9 +104,9 @@ export const runPing = async (req: Request, res: Response): Promise<void> => {
         : `ping -c ${count} -W 2 ${sanitizedTarget}`;
 
       const { stdout, stderr } = await execAsync(cmd, { timeout: 15000 });
-      result = stdout || stderr;
+      result = `${stdout || ''}${stderr || ''}`.trim();
 
-      if (result.toLowerCase().includes('unreachable') || result.toLowerCase().includes('100% packet loss')) {
+      if (!isPingReply(result)) {
         status = 'failed';
       }
     } catch (execErr: unknown) {
@@ -89,6 +132,17 @@ export const runPing = async (req: Request, res: Response): Promise<void> => {
       } else {
         result = `Ping para ${sanitizedTarget} falhou: host inacessível ou timeout`;
         status = 'failed';
+      }
+    }
+
+    if (status === 'failed') {
+      const tcpProbe = await probeTcpReachability(sanitizedTarget);
+      if (tcpProbe) {
+        result =
+          `ICMP indisponível ou bloqueado para ${sanitizedTarget}.\n` +
+          `TCP respondeu na porta ${tcpProbe.port} (${tcpProbe.latency}ms).\n` +
+          '[Fallback automático do NetBIPI: algumas redes bloqueiam ICMP, mas continuam acessíveis via TCP.]';
+        status = 'success';
       }
     }
 
