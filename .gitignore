@@ -50,9 +50,6 @@ ehthumbs.db
 *.swo
 *.suo
 
-# Claude Code (ferramenta de desenvolvimento)
-.claude/
-
 # Docker volumes locais
 postgres_data/
 zabbix_mysql_data/
