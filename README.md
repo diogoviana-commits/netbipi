@@ -131,8 +131,11 @@ flowchart LR
 ```bash
 git clone https://github.com/diogoviana-commits/netbipi.git
 cd netbipi
+cp .env.example .env
 docker compose up -d
 ```
+
+No PowerShell, use `Copy-Item .env.example .env`.
 
 Depois de alguns segundos, abra `http://localhost`.
 
@@ -323,12 +326,23 @@ netbipi/
 
 ---
 
-## Publicação
+## Lançamento
 
-Quer postar o projeto no LinkedIn?
+Material pronto para o primeiro release público:
 
-- Use [LINKEDIN.md](LINKEDIN.md) como base do texto
-- Use as imagens da pasta [screenshots/](screenshots/)
+- [CHANGELOG.md](CHANGELOG.md)
+- [RELEASE.md](RELEASE.md)
+- [LINKEDIN.md](LINKEDIN.md)
+
+---
+
+## Divulgação
+
+Quer anunciar o projeto?
+
+- Use [RELEASE.md](RELEASE.md) como base para o GitHub Release
+- Use [LINKEDIN.md](LINKEDIN.md) como base para o post do LinkedIn
+- Use as imagens da pasta [screenshots/](screenshots/) para montar o carrossel
 - Destaque a combinação de monitoramento, service desk e open source
 
 ---
