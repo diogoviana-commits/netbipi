@@ -51,7 +51,7 @@ goto MENU
 :: ============================================================
 :VERIFICAR_DOCKER
 :: ============================================================
-powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\check-docker.ps1" >nul 2>&1
+docker info >nul 2>&1
 if %ERRORLEVEL% equ 0 exit /b 0
 
 echo.
