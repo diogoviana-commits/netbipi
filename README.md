@@ -131,7 +131,7 @@ flowchart LR
 ```bash
 git clone https://github.com/diogoviana-commits/netbipi.git
 cd netbipi
-docker-compose up -d
+docker compose up -d
 ```
 
 Depois de alguns segundos, abra `http://localhost`.
@@ -154,16 +154,16 @@ O `docker-compose.yml` usa perfis para ativar integrações opcionais.
 
 ```bash
 # Somente NetBIPI
-docker-compose up -d
+docker compose up -d
 
 # NetBIPI + Zabbix
-docker-compose --profile monitoring up -d
+docker compose --profile monitoring up -d
 
 # NetBIPI + GLPI
-docker-compose --profile itsm up -d
+docker compose --profile itsm up -d
 
 # Tudo
-docker-compose --profile full up -d
+docker compose --profile full up -d
 ```
 
 | Serviço | URL | Credenciais iniciais |
