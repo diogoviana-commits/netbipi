@@ -15,7 +15,7 @@
     "jspdf": "^2.5.1",
     "lucide-react": "^0.294.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "react-dom": "^19.2.4",
     "react-hot-toast": "^2.4.1",
     "react-router-dom": "^6.20.0",
     "reactflow": "^11.10.0",
