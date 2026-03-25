@@ -69,22 +69,29 @@ router.post('/zabbix', async (req: Request, res: Response): Promise<void> => {
     console.log(`[Webhook] Created alert ${newAlertId} from Zabbix webhook`);
 
     if (mappedSeverity === 'disaster' || mappedSeverity === 'high') {
+      const ticketTitle = `[AUTO] ${trigger_name}`;
+      const ticketDesc = `Chamado criado automaticamente via webhook Zabbix.\n\nHost: ${hostname || 'N/A'}\nTrigger: ${trigger_name}\nSeveridade: ${mappedSeverity}\nMensagem: ${message || trigger_name}`;
+      let glpiTicketId: number | null = null;
+
       try {
-        const ticketTitle = `[AUTO] ${trigger_name}`;
-        const ticketDesc = `Chamado criado automaticamente via webhook Zabbix.\n\nHost: ${hostname || 'N/A'}\nTrigger: ${trigger_name}\nSeveridade: ${mappedSeverity}\nMensagem: ${message || trigger_name}`;
-
-        const glpiResult = await createTicket(ticketTitle, ticketDesc, mappedSeverity === 'disaster' ? 'critical' : 'high', assetId || undefined);
-
-        await query(
-          `INSERT INTO tickets (glpi_ticket_id, title, description, status, priority, category, asset_id, alert_id, created_by)
-           SELECT $1, $2, $3, 'open', $4, 'incident', $5, $6, id FROM users WHERE role = 'admin' LIMIT 1`,
-          [glpiResult.id, ticketTitle, ticketDesc, mappedSeverity === 'disaster' ? 'critical' : 'high', assetId, newAlertId]
+        const glpiResult = await createTicket(
+          ticketTitle,
+          ticketDesc,
+          mappedSeverity === 'disaster' ? 'critical' : 'high',
+          assetId || undefined
         );
-
-        console.log(`[Webhook] Auto-created ticket for ${mappedSeverity} alert ${newAlertId}`);
+        glpiTicketId = glpiResult.id;
       } catch (ticketErr) {
-        console.error('[Webhook] Failed to auto-create ticket:', ticketErr);
+        console.error('[Webhook] Failed to create ticket in GLPI:', ticketErr);
       }
+
+      await query(
+        `INSERT INTO tickets (glpi_ticket_id, title, description, status, priority, category, asset_id, alert_id, created_by)
+         SELECT $1, $2, $3, 'open', $4, 'incident', $5, $6, id FROM users WHERE role = 'admin' LIMIT 1`,
+        [glpiTicketId, ticketTitle, ticketDesc, mappedSeverity === 'disaster' ? 'critical' : 'high', assetId, newAlertId]
+      );
+
+      console.log(`[Webhook] Auto-created ticket for ${mappedSeverity} alert ${newAlertId}`);
     }
 
     res.json({ message: 'Webhook processado com sucesso', alertId: newAlertId });

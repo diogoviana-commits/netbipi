@@ -57,49 +57,21 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon, color, subtitle
   </div>
 );
 
-const MOCK_METRICS: DashboardMetrics = {
-  totalAlerts: 15,
-  openAlerts: 9,
-  criticalAlerts: 4,
-  openTickets: 5,
-  inProgressTickets: 3,
-  resolvedToday: 2,
-  avgResolutionTime: 127,
-  topIncidentHosts: [
-    { hostname: 'web-server-01', count: 3 },
-    { hostname: 'db-server-01', count: 3 },
-    { hostname: 'vpn-gateway-01', count: 2 },
-    { hostname: 'dc-01', count: 2 },
-    { hostname: 'switch-core-01', count: 1 },
-  ],
-  alertsBySeverity: [
-    { severity: 'disaster', count: 3 },
-    { severity: 'high', count: 4 },
-    { severity: 'average', count: 4 },
-    { severity: 'warning', count: 2 },
-    { severity: 'info', count: 2 },
-  ],
-  ticketsByStatus: [
-    { status: 'open', count: 5 },
-    { status: 'in_progress', count: 3 },
-    { status: 'resolved', count: 2 },
-  ],
-  recentAlerts: [],
-  recentTickets: [],
-};
-
 const Dashboard: React.FC = () => {
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
   const [loading, setLoading] = useState(true);
-  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const [error, setError] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   const fetchMetrics = useCallback(async () => {
+    setError(null);
     try {
       const res = await dashboardApi.getMetrics();
       setMetrics(res.data);
       setLastUpdated(new Date());
     } catch {
-      setMetrics(MOCK_METRICS);
+      setMetrics(null);
+      setError('Não foi possível carregar as métricas do backend.');
     } finally {
       setLoading(false);
     }
@@ -119,7 +91,34 @@ const Dashboard: React.FC = () => {
     );
   }
 
-  const m = metrics || MOCK_METRICS;
+  if (error && !metrics) {
+    return (
+      <div className="bg-gray-800 border border-red-900/40 rounded-xl p-6 flex flex-col gap-4">
+        <div className="flex items-start gap-4">
+          <div className="w-10 h-10 rounded-lg bg-red-600 flex items-center justify-center flex-shrink-0">
+            <AlertTriangle size={18} className="text-white" />
+          </div>
+          <div className="flex-1">
+            <h2 className="text-white font-bold text-xl">Dashboard Operacional</h2>
+            <p className="text-gray-400 text-sm mt-1">{error}</p>
+            <p className="text-gray-500 text-xs mt-2">
+              Verifique se o backend e o banco estão ativos e tente novamente.
+            </p>
+          </div>
+        </div>
+        <div>
+          <button
+            onClick={fetchMetrics}
+            className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white text-sm rounded-lg transition-colors"
+          >
+            Tentar novamente
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const m = metrics as DashboardMetrics;
 
   const severityChartData = m.alertsBySeverity.map(item => ({
     name: severityLabel(item.severity),
@@ -143,7 +142,7 @@ const Dashboard: React.FC = () => {
         </div>
         <div className="flex items-center gap-3">
           <p className="text-gray-500 text-xs">
-            Atualizado: {lastUpdated.toLocaleTimeString('pt-BR')}
+            Atualizado: {lastUpdated?.toLocaleTimeString('pt-BR') ?? '-'}
           </p>
           <button
             onClick={fetchMetrics}
@@ -153,6 +152,24 @@ const Dashboard: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {error && metrics && (
+        <div className="bg-yellow-600/10 border border-yellow-600/30 rounded-xl p-4 flex items-center justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <AlertTriangle size={16} className="text-yellow-400 mt-0.5" />
+            <div>
+              <p className="text-yellow-300 text-sm font-medium">Última atualização falhou</p>
+              <p className="text-yellow-400/80 text-xs mt-1">{error}</p>
+            </div>
+          </div>
+          <button
+            onClick={fetchMetrics}
+            className="px-3 py-2 bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-200 text-xs rounded-lg transition-colors"
+          >
+            Tentar novamente
+          </button>
+        </div>
+      )}
 
       {/* Stat Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">

@@ -55,7 +55,7 @@ services:
       - JWT_SECRET=${JWT_SECRET:-netbipi-production-secret-change-me}
       - PORT=3001
       - NODE_ENV=${NODE_ENV:-production}
-      - MOCK_INTEGRATIONS=${MOCK_INTEGRATIONS:-true}
+      - MOCK_INTEGRATIONS=${MOCK_INTEGRATIONS:-false}
       - FRONTEND_URL=${FRONTEND_URL:-http://localhost}
       - ZABBIX_URL=http://zabbix-web:8080/api_jsonrpc.php
       - ZABBIX_USER=${ZABBIX_USER:-Admin}

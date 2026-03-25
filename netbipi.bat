@@ -16,7 +16,7 @@ echo  ================================================================
 echo   NetBIPI ^| Network ^& Infrastructure Business Intelligence
 echo  ================================================================
 echo.
-echo   [1] Iniciar NetBIPI  (somente hub - modo mock)
+echo   [1] Iniciar NetBIPI  (somente hub - ambiente local)
 echo   [2] Iniciar NetBIPI + Zabbix
 echo   [3] Iniciar NetBIPI + GLPI
 echo   [4] Iniciar TUDO  (NetBIPI + Zabbix + GLPI)
@@ -106,7 +106,7 @@ goto LOOP_DOCKER
 :: ============================================================
 call :VERIFICAR_DOCKER
 echo.
-echo  Iniciando NetBIPI ^(modo mock - sem Zabbix/GLPI^)...
+echo  Iniciando NetBIPI ^(sem Zabbix/GLPI configurados^)...
 echo.
 docker-compose up -d --build
 if %ERRORLEVEL% neq 0 (
@@ -242,10 +242,12 @@ echo  ================================================================
 echo   Configuracao concluida!
 echo  ================================================================
 echo.
-echo   Para ativar as integracoes reais, edite o docker-compose.yml:
+echo   Para ativar as integracoes reais, mantenha MOCK_INTEGRATIONS=false:
 echo     MOCK_INTEGRATIONS=false
 echo     GLPI_APP_TOKEN=netbipi-glpi-app-token
 echo     GLPI_USER_TOKEN=netbipi-glpi-user-token
+echo.
+echo   Use MOCK_INTEGRATIONS=true apenas para laboratorio sem Zabbix/GLPI.
 echo.
 echo   E reinicie o backend com a opcao [9].
 echo.

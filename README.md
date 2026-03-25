@@ -39,7 +39,7 @@ O foco é reduzir troca de abas, acelerar a resposta a incidentes e deixar a ope
 - Integração com GLPI para criação e atualização de chamados
 - WebSocket para atualização em tempo real sem recarregar a página
 - Inventário de ativos com visão visual da infraestrutura
-- Painel de cloud, relatórios e logs com filtros
+- Painel de cloud opcional em modo de demonstração, relatórios e logs com filtros
 - Diagnóstico de rede diretamente no navegador
 - Dashboard por turno e fluxo de passagem de plantão
 - Modo quiosque para TV de sala de operação
@@ -50,7 +50,7 @@ O foco é reduzir troca de abas, acelerar a resposta a incidentes e deixar a ope
 
 ## Screenshots
 
-As imagens abaixo foram geradas a partir do ambiente real do projeto.
+As imagens abaixo foram geradas em uma instalação local do projeto.
 
 <table>
   <tr>
@@ -136,7 +136,7 @@ docker-compose up -d
 
 Depois de alguns segundos, abra `http://localhost`.
 
-### Credenciais padrão
+### Credenciais iniciais
 
 | Usuário | E-mail | Senha |
 |---------|--------|-------|
@@ -166,7 +166,7 @@ docker-compose --profile itsm up -d
 docker-compose --profile full up -d
 ```
 
-| Serviço | URL | Credenciais padrão |
+| Serviço | URL | Credenciais iniciais |
 |---------|-----|--------------------|
 | NetBIPI | http://localhost | admin@netbipi.local / admin123 |
 | NetBIPI API | http://localhost:3001 | - |
@@ -189,6 +189,8 @@ Depois, defina:
 MOCK_INTEGRATIONS=false
 ```
 
+Use `MOCK_INTEGRATIONS=true` apenas para laboratório sem Zabbix e GLPI.
+
 Guia completo:
 
 - [INTEGRACAO.md](INTEGRACAO.md)
@@ -209,7 +211,7 @@ Copie [`.env.example`](.env.example) para `.env` e ajuste conforme o ambiente.
 |----------|-----------|---------|
 | `DATABASE_URL` | String de conexão do PostgreSQL | `postgresql://netbipi:...` |
 | `JWT_SECRET` | Chave JWT forte | `use-uma-chave-longa` |
-| `MOCK_INTEGRATIONS` | Usa mock ou integrações reais | `true` ou `false` |
+| `MOCK_INTEGRATIONS` | Ativa o modo de demonstração local | `true` ou `false` |
 | `FRONTEND_URL` | Origem permitida no backend | `http://localhost` |
 | `ZABBIX_URL` | URL da API do Zabbix | `http://zabbix-web:8080/api_jsonrpc.php` |
 | `GLPI_URL` | URL da API do GLPI | `http://glpi/apirest.php` |

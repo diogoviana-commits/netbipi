@@ -108,13 +108,13 @@ const Login: React.FC = () => {
             </button>
           </form>
 
-          {/* Demo credentials */}
+          {/* Initial credentials */}
           <div className="mt-6 p-3 bg-gray-800/50 border border-gray-700/50 rounded-lg">
-            <p className="text-gray-500 text-xs font-medium mb-1.5">Credenciais de demonstração:</p>
+            <p className="text-gray-500 text-xs font-medium mb-1.5">Credenciais iniciais do ambiente local:</p>
             <div className="space-y-1 text-xs text-gray-600 font-mono">
               <p><span className="text-gray-500">Admin:</span> admin@netbipi.local / admin123</p>
-              <p><span className="text-gray-500">N1:</span> n1@netbipi.local / password</p>
-              <p><span className="text-gray-500">N2:</span> n2@netbipi.local / password</p>
+              <p><span className="text-gray-500">N1:</span> n1@netbipi.local / analyst123</p>
+              <p><span className="text-gray-500">N2:</span> n2@netbipi.local / analyst123</p>
             </div>
           </div>
         </div>

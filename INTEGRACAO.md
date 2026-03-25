@@ -24,7 +24,7 @@
 
 ## Início Rápido
 
-### Opção 1 — Somente NetBIPI (modo mock)
+### Opção 1 — Somente NetBIPI (ambiente local)
 ```bash
 docker-compose up -d
 # Acesse: http://localhost
@@ -149,6 +149,9 @@ MOCK_INTEGRATIONS=false
 ---
 
 ## Ativar Integrações Reais
+
+O modo real é o padrão do projeto. Use `MOCK_INTEGRATIONS=true` apenas para
+ambientes de laboratório sem Zabbix e GLPI.
 
 Após configurar Zabbix e GLPI, edite o `docker-compose.yml` ou `.env`:
 

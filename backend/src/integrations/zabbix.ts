@@ -49,9 +49,9 @@ export const ZABBIX_SEVERITY_MAP: Record<string, string> = {
 };
 
 // ============================================================
-// Mock Data
+// Demo Data
 // ============================================================
-const MOCK_PROBLEMS: ZabbixProblem[] = [
+const DEMO_PROBLEMS: ZabbixProblem[] = [
   {
     eventid: 'zbx-10001',
     objectid: 'trigger-001',
@@ -114,7 +114,7 @@ const MOCK_PROBLEMS: ZabbixProblem[] = [
   },
 ];
 
-const MOCK_HOSTS: ZabbixHost[] = [
+const DEMO_HOSTS: ZabbixHost[] = [
   {
     hostid: 'h001', host: 'web-server-01', name: 'Web Server 01',
     interfaces: [{ ip: '10.0.1.10', port: '10050', type: '1' }],
@@ -211,7 +211,7 @@ const zabbixCall = async <T>(
 // ============================================================
 export const authenticate = async (): Promise<string> => {
   if (env.MOCK_INTEGRATIONS) {
-    authToken = 'mock-zabbix-token-12345';
+    authToken = 'demo-zabbix-token-12345';
     tokenExpiresAt = Date.now() + 3600 * 1000;
     return authToken;
   }
@@ -227,10 +227,8 @@ export const authenticate = async (): Promise<string> => {
     console.log('[Zabbix] Autenticado com sucesso');
     return authToken;
   } catch (err) {
-    console.error('[Zabbix] Falha na autenticação, usando mock:', (err as Error).message);
-    authToken = 'mock-fallback-token';
-    tokenExpiresAt = Date.now() + 3600 * 1000;
-    return authToken;
+    console.error('[Zabbix] Falha na autenticação:', (err as Error).message);
+    throw err;
   }
 };
 
@@ -239,7 +237,7 @@ export const authenticate = async (): Promise<string> => {
 // ============================================================
 export const getProblems = async (limit = 50): Promise<ZabbixProblem[]> => {
   if (env.MOCK_INTEGRATIONS) {
-    return MOCK_PROBLEMS.slice(0, limit);
+    return DEMO_PROBLEMS.slice(0, limit);
   }
 
   try {
@@ -254,8 +252,8 @@ export const getProblems = async (limit = 50): Promise<ZabbixProblem[]> => {
       limit,
     });
   } catch (err) {
-    console.error('[Zabbix] getProblems falhou, usando mock:', (err as Error).message);
-    return MOCK_PROBLEMS.slice(0, limit);
+    console.error('[Zabbix] getProblems falhou:', (err as Error).message);
+    throw err;
   }
 };
 
@@ -266,7 +264,7 @@ export const getAlerts = getProblems;
 // Get all hosts
 // ============================================================
 export const getHosts = async (): Promise<ZabbixHost[]> => {
-  if (env.MOCK_INTEGRATIONS) return MOCK_HOSTS;
+  if (env.MOCK_INTEGRATIONS) return DEMO_HOSTS;
 
   try {
     return await zabbixCall<ZabbixHost[]>('host.get', {
@@ -275,8 +273,8 @@ export const getHosts = async (): Promise<ZabbixHost[]> => {
       selectGroups: ['groupid', 'name'],
     });
   } catch (err) {
-    console.error('[Zabbix] getHosts falhou, usando mock:', (err as Error).message);
-    return MOCK_HOSTS;
+    console.error('[Zabbix] getHosts falhou:', (err as Error).message);
+    throw err;
   }
 };
 
@@ -314,7 +312,7 @@ export const acknowledgeEvent = async (
   message: string,
 ): Promise<boolean> => {
   if (env.MOCK_INTEGRATIONS) {
-    console.log(`[Zabbix Mock] Evento ${eventId} reconhecido: ${message}`);
+    console.log(`[Zabbix Demo] Evento ${eventId} reconhecido: ${message}`);
     return true;
   }
 
@@ -335,7 +333,7 @@ export const acknowledgeEvent = async (
 // Get API version
 // ============================================================
 export const getApiVersion = async (): Promise<string> => {
-  if (env.MOCK_INTEGRATIONS) return '7.0.0 (mock)';
+  if (env.MOCK_INTEGRATIONS) return '7.0.0 (demo)';
   try {
     return await zabbixCall<string>('apiinfo.version', {}, false);
   } catch {
@@ -365,5 +363,5 @@ export const getHostGroups = async () => {
   }
 };
 
-export const getMockProblems = (): ZabbixProblem[] => MOCK_PROBLEMS;
-export const getMockHosts = (): ZabbixHost[] => MOCK_HOSTS;
+export const getDemoProblems = (): ZabbixProblem[] => DEMO_PROBLEMS;
+export const getDemoHosts = (): ZabbixHost[] => DEMO_HOSTS;

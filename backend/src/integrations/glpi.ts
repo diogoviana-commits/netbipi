@@ -57,9 +57,9 @@ export const GLPI_PRIORITY_MAP: Record<string, number> = {
 };
 
 // ============================================================
-// Mock data
+// Demo data
 // ============================================================
-const MOCK_TICKETS: GLPITicket[] = [
+const DEMO_TICKETS: GLPITicket[] = [
   {
     id: 1001, name: '[AUTO] Nginx fora no web-server-01',
     content: 'Chamado criado automaticamente. Serviço nginx não responde.',
@@ -90,7 +90,7 @@ const MOCK_TICKETS: GLPITicket[] = [
 let sessionToken: string | null = null;
 
 const getSession = async (): Promise<string> => {
-  if (env.MOCK_INTEGRATIONS) return 'mock-glpi-session-token';
+  if (env.MOCK_INTEGRATIONS) return 'demo-glpi-session-token';
 
   if (sessionToken) return sessionToken;
 
@@ -132,7 +132,7 @@ const glpiCall = async <T>(
   data?: unknown,
   retried = false,
 ): Promise<T> => {
-  if (env.MOCK_INTEGRATIONS) throw new Error('MOCK_MODE');
+  if (env.MOCK_INTEGRATIONS) throw new Error('DEMO_MODE');
 
   const token = await getSession();
 
@@ -170,9 +170,9 @@ export const createTicket = async (
   assetHostname?: string,
 ): Promise<GLPICreateResponse> => {
   if (env.MOCK_INTEGRATIONS) {
-    const mockId = Math.floor(Math.random() * 9000) + 1000;
-    console.log(`[GLPI Mock] Chamado #${mockId} criado: ${title}`);
-    return { id: mockId, message: `Chamado #${mockId} criado com sucesso (mock)` };
+    const demoId = Math.floor(Math.random() * 9000) + 1000;
+    console.log(`[GLPI Demo] Chamado #${demoId} criado: ${title}`);
+    return { id: demoId, message: `Chamado #${demoId} criado com sucesso (demo)` };
   }
 
   try {
@@ -190,9 +190,8 @@ export const createTicket = async (
     console.log(`[GLPI] Chamado criado: #${response.id}`);
     return response;
   } catch (err) {
-    console.error('[GLPI] createTicket falhou, usando mock:', (err as Error).message);
-    const mockId = Math.floor(Math.random() * 9000) + 1000;
-    return { id: mockId, message: `Chamado #${mockId} criado (fallback mock)` };
+    console.error('[GLPI] createTicket falhou:', (err as Error).message);
+    throw err;
   }
 };
 
@@ -204,7 +203,7 @@ export const updateTicket = async (
   updates: { status?: string; priority?: string; assigneeUserId?: number },
 ): Promise<boolean> => {
   if (env.MOCK_INTEGRATIONS) {
-    console.log(`[GLPI Mock] Chamado #${id} atualizado:`, updates);
+    console.log(`[GLPI Demo] Chamado #${id} atualizado:`, updates);
     return true;
   }
 
@@ -227,7 +226,7 @@ export const updateTicket = async (
 // ============================================================
 export const closeTicket = async (id: string | number, solution: string): Promise<boolean> => {
   if (env.MOCK_INTEGRATIONS) {
-    console.log(`[GLPI Mock] Chamado #${id} encerrado`);
+    console.log(`[GLPI Demo] Chamado #${id} encerrado`);
     return true;
   }
 
@@ -250,7 +249,7 @@ export const closeTicket = async (id: string | number, solution: string): Promis
 // ============================================================
 export const getTicket = async (id: string | number): Promise<GLPITicket | null> => {
   if (env.MOCK_INTEGRATIONS) {
-    const found = MOCK_TICKETS.find((t) => t.id === Number(id));
+    const found = DEMO_TICKETS.find((t) => t.id === Number(id));
     return found ?? { id: Number(id), name: `Chamado GLPI #${id}`, content: 'Conteúdo do chamado', status: 2, priority: 3, urgency: 3, impact: 3, date_creation: new Date().toISOString(), date_mod: new Date().toISOString() };
   }
 
@@ -266,7 +265,7 @@ export const getTicket = async (id: string | number): Promise<GLPITicket | null>
 // List tickets from GLPI (for sync)
 // ============================================================
 export const listTickets = async (limit = 50, onlyOpen = false): Promise<GLPITicket[]> => {
-  if (env.MOCK_INTEGRATIONS) return MOCK_TICKETS;
+  if (env.MOCK_INTEGRATIONS) return DEMO_TICKETS;
 
   try {
     const params = new URLSearchParams({
@@ -284,7 +283,7 @@ export const listTickets = async (limit = 50, onlyOpen = false): Promise<GLPITic
     return Array.isArray(response) ? response : (response as { data: GLPITicket[] }).data ?? [];
   } catch (err) {
     console.error('[GLPI] listTickets falhou:', (err as Error).message);
-    return MOCK_TICKETS;
+    return [];
   }
 };
 
@@ -297,7 +296,7 @@ export const addFollowup = async (
   isPrivate = true,
 ): Promise<boolean> => {
   if (env.MOCK_INTEGRATIONS) {
-    console.log(`[GLPI Mock] Acompanhamento adicionado ao chamado #${ticketId}`);
+    console.log(`[GLPI Demo] Acompanhamento adicionado ao chamado #${ticketId}`);
     return true;
   }
 
@@ -325,7 +324,7 @@ export const assignTicket = async (
   glpiUserId: number,
 ): Promise<boolean> => {
   if (env.MOCK_INTEGRATIONS) {
-    console.log(`[GLPI Mock] Chamado #${ticketId} atribuído ao usuário #${glpiUserId}`);
+    console.log(`[GLPI Demo] Chamado #${ticketId} atribuído ao usuário #${glpiUserId}`);
     return true;
   }
 
@@ -344,7 +343,7 @@ export const assignTicket = async (
 // Get GLPI API version / health
 // ============================================================
 export const getApiStatus = async (): Promise<{ version: string; available: boolean }> => {
-  if (env.MOCK_INTEGRATIONS) return { version: '10.x (mock)', available: true };
+  if (env.MOCK_INTEGRATIONS) return { version: '10.x (demo)', available: true };
 
   try {
     const response = await axios.get(`${env.GLPI_URL}/`, {
@@ -360,4 +359,4 @@ export const getApiStatus = async (): Promise<{ version: string; available: bool
 // Cleanup on process exit
 process.on('exit', killSession);
 
-export const getMockTickets = (): GLPITicket[] => MOCK_TICKETS;
+export const getDemoTickets = (): GLPITicket[] => DEMO_TICKETS;

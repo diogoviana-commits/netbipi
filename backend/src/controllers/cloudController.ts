@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { env } from '../config/env';
 
 const generateTimeseries = (hours = 24) => {
   const data = [];
@@ -18,6 +19,13 @@ const generateTimeseries = (hours = 24) => {
 
 export const getCloudStatus = async (_req: Request, res: Response): Promise<void> => {
   try {
+    if (!env.MOCK_INTEGRATIONS) {
+      res.status(503).json({
+        error: 'Painel de nuvem indisponível neste ambiente. Ative o modo de demonstração local ou conecte um provedor real.',
+      });
+      return;
+    }
+
     const status = {
       aws: {
         available: true,
@@ -42,7 +50,7 @@ export const getCloudStatus = async (_req: Request, res: Response): Promise<void
         cost_month: 423.20,
         last_updated: new Date().toISOString(),
       },
-      is_mock: true,
+      is_demo: true,
     };
     res.json(status);
   } catch (err) {
@@ -53,6 +61,13 @@ export const getCloudStatus = async (_req: Request, res: Response): Promise<void
 
 export const getCloudMetrics = async (_req: Request, res: Response): Promise<void> => {
   try {
+    if (!env.MOCK_INTEGRATIONS) {
+      res.status(503).json({
+        error: 'Métricas de cloud indisponíveis neste ambiente.',
+      });
+      return;
+    }
+
     const metrics = {
       aws: {
         'web-prod-01': generateTimeseries(24),
@@ -62,7 +77,7 @@ export const getCloudMetrics = async (_req: Request, res: Response): Promise<voi
         'app-server-azure': generateTimeseries(24),
         'sql-server-azure': generateTimeseries(24),
       },
-      is_mock: true,
+      is_demo: true,
     };
     res.json(metrics);
   } catch (err) {
@@ -73,6 +88,13 @@ export const getCloudMetrics = async (_req: Request, res: Response): Promise<voi
 
 export const getCloudAlerts = async (_req: Request, res: Response): Promise<void> => {
   try {
+    if (!env.MOCK_INTEGRATIONS) {
+      res.status(503).json({
+        error: 'Alertas de cloud indisponíveis neste ambiente.',
+      });
+      return;
+    }
+
     const alerts = {
       aws_cloudwatch: [
         {
@@ -99,7 +121,7 @@ export const getCloudAlerts = async (_req: Request, res: Response): Promise<void
         },
       ],
       azure_monitor: [],
-      is_mock: true,
+      is_demo: true,
     };
     res.json(alerts);
   } catch (err) {

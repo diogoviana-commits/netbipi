@@ -25,7 +25,6 @@ export const env = {
   GLPI_APP_TOKEN: process.env.GLPI_APP_TOKEN || '',
   GLPI_USER_TOKEN: process.env.GLPI_USER_TOKEN || '',
 
-  // Integration mode — defaults to true (mock) unless explicitly set to false
-  // BUGFIX: the previous `|| true` caused this to always be true
-  MOCK_INTEGRATIONS: process.env.MOCK_INTEGRATIONS !== 'false',
+  // Demo mode only. Keep false in production and set true only for local sample data.
+  MOCK_INTEGRATIONS: process.env.MOCK_INTEGRATIONS === 'true',
 };

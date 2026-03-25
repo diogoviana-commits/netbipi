@@ -48,7 +48,7 @@ interface CloudStatus {
     cost_month: number;
     last_updated: string;
   };
-  is_mock: boolean;
+  is_demo: boolean;
 }
 
 const StateBadge: React.FC<{ state: string }> = ({ state }) => {
@@ -134,9 +134,9 @@ const CloudPanel: React.FC = () => {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          {status?.is_mock && (
+          {status?.is_demo && (
             <span className="bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 text-xs px-3 py-1 rounded-full font-medium">
-              Modo Mock
+              Ambiente de demonstração
             </span>
           )}
           <button
@@ -173,7 +173,7 @@ const CloudPanel: React.FC = () => {
         </div>
       ) : !status ? (
         <div className="flex items-center justify-center py-16">
-          <p className="text-gray-400">Erro ao carregar dados da nuvem</p>
+          <p className="text-gray-400">Painel de nuvem indisponível neste ambiente</p>
         </div>
       ) : activeTab === 'aws' ? (
         <div className="space-y-6">

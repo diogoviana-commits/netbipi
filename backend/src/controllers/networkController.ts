@@ -223,16 +223,18 @@ export const runTraceroute = async (req: Request, res: Response): Promise<void> 
       const { stdout, stderr } = await execAsync(cmd, { timeout: 30000 });
       result = stdout || stderr || 'Sem saída';
     } catch (execErr) {
-      const mockHops = [
-        '1  gateway.local (192.168.1.1)  1.234 ms',
-        '2  10.0.0.1 (10.0.0.1)  3.456 ms',
-        '3  isp-router.net (200.0.0.1)  12.789 ms',
-        `4  * * * (timeout)`,
-        `5  ${sanitizedTarget}  25.012 ms`,
-      ];
-      result = `traceroute to ${sanitizedTarget}\n` + mockHops.join('\n');
-      result += `\n\n[Nota: resultado simulado - traceroute pode não estar disponível no container]`;
-      status = 'success';
+      const error = execErr as { message?: string; stdout?: string; stderr?: string };
+      const details = [error.stdout, error.stderr, error.message]
+        .filter(Boolean)
+        .join('\n')
+        .trim();
+
+      if (/ENOENT|not found|is not recognized/i.test(error.message || '')) {
+        result = `Traceroute indisponível neste ambiente para ${sanitizedTarget}. Instale traceroute/tracert no host para ver os saltos detalhados.`;
+      } else {
+        result = details || `Traceroute para ${sanitizedTarget} falhou.`;
+      }
+      status = 'failed';
     }
 
     await savesDiagnostic(req.user.userId, 'traceroute', sanitizedTarget, result, status);

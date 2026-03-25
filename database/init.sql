@@ -134,7 +134,7 @@ CREATE INDEX IF NOT EXISTS idx_audit_log_user_id ON audit_log(user_id);
 CREATE INDEX IF NOT EXISTS idx_audit_log_action ON audit_log(action);
 
 -- ============================================================
--- MOCK DATA
+-- DADOS INICIAIS
 -- ============================================================
 
 -- Users — hashes gerados via pgcrypto (crypt compativel com bcryptjs)
@@ -853,7 +853,7 @@ INSERT INTO audit_log (user_id, action, entity_type, entity_id, details, ip_addr
   'SYSTEM_INIT',
   'system',
   NULL,
-  '{"message": "Sistema NetBIPI inicializado com dados de exemplo"}',
+  '{"message": "Sistema NetBIPI inicializado com dados iniciais"}',
   '127.0.0.1'
 )
 ON CONFLICT DO NOTHING;
