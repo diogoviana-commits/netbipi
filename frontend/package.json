@@ -1,6 +1,8 @@
 {
   "name": "netbipi-frontend",
   "version": "1.0.0",
+  "description": "Interface web do NetBIPI",
+  "license": "MIT",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",

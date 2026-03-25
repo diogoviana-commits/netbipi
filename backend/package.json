@@ -1,8 +1,9 @@
 {
   "name": "netbipi-backend",
   "version": "1.0.0",
-  "description": "NetBIPI Backend API",
+  "description": "API e WebSocket do NetBIPI",
   "main": "dist/server.js",
+  "license": "MIT",
   "scripts": {
     "build": "tsc",
     "start": "node dist/server.js",

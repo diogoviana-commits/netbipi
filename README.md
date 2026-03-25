@@ -3,66 +3,70 @@
 # NetBIPI
 ### Network & Infrastructure Business Intelligence Platform
 
-**Hub operacional centralizado para equipes de Suporte Técnico N1/N2**
+Plataforma open source para centralizar operação N1/N2, monitoramento, service desk e diagnóstico de rede.
 
 ![React](https://img.shields.io/badge/React-18-61DAFB?style=flat&logo=react&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat&logo=typescript&logoColor=white)
 ![Node.js](https://img.shields.io/badge/Node.js-20-339933?style=flat&logo=node.js&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?style=flat&logo=postgresql&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=flat&logo=docker&logoColor=white)
-![Zabbix](https://img.shields.io/badge/Zabbix-7.0-FF0000?style=flat&logo=zabbix&logoColor=white)
 ![License](https://img.shields.io/badge/license-MIT-green?style=flat)
 
 </div>
 
 ---
 
-## Sobre o Projeto
+## Visão Geral
 
-O NetBIPI nasceu de uma necessidade real do dia a dia de suporte técnico: **analistas N1/N2 precisam operar entre múltiplas ferramentas ao mesmo tempo** — Zabbix em uma aba, GLPI em outra, logs no terminal, e ainda fazer diagnósticos de rede.
+O NetBIPI foi pensado para equipes que operam entre Zabbix, GLPI, logs, relatórios e diagnósticos de rede ao mesmo tempo.
 
-Esta plataforma centraliza tudo isso em um único painel operacional, reduzindo o tempo de resposta a incidentes e facilitando a gestão de chamados e ativos.
+Em vez de abrir várias ferramentas em paralelo, a plataforma reúne as informações operacionais em um único painel com:
+
+- alertas em tempo real
+- integração com service desk
+- inventário de ativos
+- diagnóstico de rede no navegador
+- base de conhecimento para runbooks
+- relatórios e histórico operacional
+
+O foco é reduzir troca de abas, acelerar a resposta a incidentes e deixar a operação mais clara para N1, N2 e NOC.
 
 ---
 
-## Funcionalidades
+## Destaques
 
-### Monitoramento em Tempo Real
-- Recebe alertas do **Zabbix** via API e webhook
-- Notificações via **WebSocket** — alerta aparece na tela sem recarregar
-- Reconhecimento e resolução de alertas com sincronização ao Zabbix
-- Escalada automática de alertas críticos sem reconhecimento após 10 minutos
+- Monitoramento via Zabbix com webhook e sincronização de alertas
+- Integração com GLPI para criação e atualização de chamados
+- WebSocket para atualização em tempo real sem recarregar a página
+- Inventário de ativos com visão visual da infraestrutura
+- Painel de cloud, relatórios e logs com filtros
+- Diagnóstico de rede diretamente no navegador
+- Dashboard por turno e fluxo de passagem de plantão
+- Modo quiosque para TV de sala de operação
+- PWA instalável e auditoria de ações
+- CI no GitHub Actions para validar o build do backend e do frontend
 
-### Service Desk
-- Integração bidirecional com **GLPI** (criação, atualização e encerramento de chamados)
-- Abertura automática de chamado para alertas de severidade alta/disaster
-- Comentários, histórico e timeline completa de cada incidente
-- Dashboard por turno com passagem de plantão estruturada
+---
 
-### Infraestrutura e Ativos
-- Inventário de servidores Linux, Windows Server e dispositivos de rede
-- Mapa visual de infraestrutura com status em tempo real
-- Painel Cloud com status de instâncias **AWS** e **Azure**
+## Screenshots
 
-### Diagnóstico de Rede
-- Ping, DNS Lookup, verificação de porta TCP e Traceroute
-- Histórico de diagnósticos por analista
-- Executado diretamente do browser, sem precisar de terminal
+As imagens abaixo foram geradas a partir do ambiente real do projeto.
 
-### Base de Conhecimento
-- Artigos de runbook vinculados a triggers do Zabbix
-- Busca por palavra-chave, categoria e tags
-- N1 consulta o procedimento padrão antes de escalar
+<table>
+  <tr>
+    <td><img src="screenshots/02-dashboard.png" alt="Dashboard" /></td>
+    <td><img src="screenshots/03-alerts.png" alt="Alertas" /></td>
+    <td><img src="screenshots/04-tickets.png" alt="Chamados" /></td>
+  </tr>
+  <tr>
+    <td><img src="screenshots/05-assets.png" alt="Ativos" /></td>
+    <td><img src="screenshots/06-map.png" alt="Mapa de infraestrutura" /></td>
+    <td><img src="screenshots/13-kiosk.png" alt="Modo quiosque" /></td>
+  </tr>
+</table>
 
-### Relatórios
-- Exportação em **PDF** e **Excel** com resumo de incidentes por período
-- MTTR, SLA por analista e top hosts incidentados
-- Heatmap e gráficos de tendência
-
-### Outros
-- Modo Quiosque **NOC** para TV da sala de operações
-- Instalável como **PWA** no celular
-- Auditoria completa de todas as ações do sistema
+Mais capturas estão em [screenshots/](screenshots/).
+Se quiser regenerar a galeria, use `npm run screenshot`.
 
 ---
 
@@ -70,62 +74,69 @@ Esta plataforma centraliza tudo isso em um único painel operacional, reduzindo 
 
 | Camada | Tecnologia |
 |--------|-----------|
-| Frontend | React 18 + TypeScript + Tailwind CSS + Vite |
-| Backend | Node.js 20 + Express + TypeScript |
+| Frontend | React 18, TypeScript, Tailwind CSS, Vite |
+| Backend | Node.js 20, Express, TypeScript |
 | Banco de dados | PostgreSQL 16 |
-| Tempo real | Socket.io (WebSocket) |
+| Tempo real | Socket.io |
 | Autenticação | JWT + bcrypt |
-| Monitoramento | Zabbix 7.0 (API JSON-RPC) |
+| Monitoramento | Zabbix 7.0 |
 | ITSM | GLPI REST API |
 | Relatórios | PDFKit + ExcelJS |
-| Agendamento | node-cron |
+| Automação | node-cron |
 | Containerização | Docker + Docker Compose |
 
 ---
 
 ## Arquitetura
 
-```
-┌─────────────────────────────────────────────────────────┐
-│                      INFRAESTRUTURA                      │
-│        Servidores · Switches · VMs · Containers         │
-└──────────────┬───────────────────────┬──────────────────┘
-               │ Agente/SNMP           │ Alertas manuais
-┌──────────────▼──────────┐  ┌─────────▼──────────────────┐
-│   ZABBIX  (porta 8080)  │  │   GLPI  (porta 8081)       │
-│   Monitoramento ativo   │  │   Service Desk / ITSM      │
-└──────────────┬──────────┘  └─────────┬──────────────────┘
-               │ Webhook/API            │ REST API
-┌──────────────▼────────────────────────▼──────────────────┐
-│              NetBIPI Backend  (porta 3001)                │
-│   Alertas · Chamados · Ativos · Logs · Diagnóstico       │
-│   WebSocket · Escalada automática · Relatórios           │
-└──────────────────────────┬────────────────────────────────┘
-                           │
-┌──────────────────────────▼────────────────────────────────┐
-│              NetBIPI Frontend  (porta 80)                 │
-│   Dashboard · NOC Kiosk · Mapa · Base de Conhecimento    │
-└───────────────────────────────────────────────────────────┘
+```mermaid
+flowchart LR
+  subgraph Infra[Infraestrutura]
+    Hosts[Servidores, switches, VMs, containers]
+  end
+
+  subgraph Monitoring[Monitoramento]
+    Zabbix[(Zabbix)]
+  end
+
+  subgraph ITSM[Service Desk]
+    GLPI[(GLPI)]
+  end
+
+  subgraph App[NetBIPI]
+    Frontend[Frontend React]
+    Backend[Backend Node.js]
+    DB[(PostgreSQL)]
+  end
+
+  Hosts --> Zabbix
+  Hosts --> GLPI
+  Zabbix --> Backend
+  GLPI --> Backend
+  Backend --> DB
+  Backend --> Frontend
 ```
 
 ---
 
-## Início Rápido
+## Como Executar
 
 ### Pré-requisitos
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) instalado e rodando
 
-### 1. Clonar e subir
+- Docker Desktop instalado e em execução
+- Git
+
+### Subir o projeto
 
 ```bash
-git clone https://github.com/seu-usuario/netbipi.git
+git clone https://github.com/diogoviana-commits/netbipi.git
 cd netbipi
 docker-compose up -d
 ```
 
-Aguarde ~60 segundos e acesse **http://localhost**
+Depois de alguns segundos, abra `http://localhost`.
 
-### 2. Credenciais padrão
+### Credenciais padrão
 
 | Usuário | E-mail | Senha |
 |---------|--------|-------|
@@ -133,16 +144,16 @@ Aguarde ~60 segundos e acesse **http://localhost**
 | Analista N1 | `n1@netbipi.local` | `analyst123` |
 | Analista N2 | `n2@netbipi.local` | `analyst123` |
 
-> ⚠️ Altere as senhas após o primeiro acesso em produção.
+> Altere as senhas antes de expor o projeto em qualquer ambiente público.
 
 ---
 
-## Perfis Docker Compose
+## Perfis Docker
 
-O projeto usa perfis para ativar integrações opcionais:
+O `docker-compose.yml` usa perfis para ativar integrações opcionais.
 
 ```bash
-# Somente NetBIPI (mock — padrão para testes)
+# Somente NetBIPI
 docker-compose up -d
 
 # NetBIPI + Zabbix
@@ -151,16 +162,14 @@ docker-compose --profile monitoring up -d
 # NetBIPI + GLPI
 docker-compose --profile itsm up -d
 
-# Tudo (NetBIPI + Zabbix + GLPI)
+# Tudo
 docker-compose --profile full up -d
 ```
-
-### Serviços disponíveis
 
 | Serviço | URL | Credenciais padrão |
 |---------|-----|--------------------|
 | NetBIPI | http://localhost | admin@netbipi.local / admin123 |
-| NetBIPI API | http://localhost:3001 | — |
+| NetBIPI API | http://localhost:3001 | - |
 | Zabbix | http://localhost:8080 | Admin / zabbix |
 | GLPI | http://localhost:8081 | glpi / glpi |
 
@@ -168,112 +177,115 @@ docker-compose --profile full up -d
 
 ## Configuração das Integrações
 
-Após subir com `--profile full`:
+Para habilitar as integrações reais:
 
 ```bash
-# Configura Zabbix e GLPI automaticamente
 bash scripts/setup-integrations.sh
+```
 
-# Ativar integrações reais no .env:
+Depois, defina:
+
+```env
 MOCK_INTEGRATIONS=false
 ```
 
-Consulte [INTEGRACAO.md](INTEGRACAO.md) para o guia completo.
+Guia completo:
 
----
+- [INTEGRACAO.md](INTEGRACAO.md)
+- [zabbix/setup/configure_zabbix.py](zabbix/setup/configure_zabbix.py)
+- [glpi/setup/configure_glpi.sh](glpi/setup/configure_glpi.sh)
 
-## Desenvolvimento sem Docker
+### Windows
 
-```bash
-# Backend
-cd backend
-cp ../.env.example .env   # ajustar DATABASE_URL
-npm install
-npm run dev               # http://localhost:3001
-
-# Frontend (outro terminal)
-cd frontend
-npm install
-npm run dev               # http://localhost:5173
-```
+Se você estiver no Windows, use [netbipi.bat](netbipi.bat) para iniciar perfis, ver status, reiniciar serviços e corrigir credenciais.
 
 ---
 
 ## Variáveis de Ambiente
 
-Copie `.env.example` para `.env` e ajuste:
+Copie [`.env.example`](.env.example) para `.env` e ajuste conforme o ambiente.
 
-| Variável | Descrição | Padrão |
-|----------|-----------|--------|
-| `DATABASE_URL` | Connection string PostgreSQL | `postgresql://netbipi:netbipi123@...` |
-| `JWT_SECRET` | Chave secreta JWT (mín. 32 chars) | — |
-| `MOCK_INTEGRATIONS` | Usar dados mock (`true`/`false`) | `true` |
-| `ZABBIX_URL` | URL da API Zabbix | `http://zabbix-web:8080/...` |
-| `ZABBIX_PASSWORD` | Senha do usuário Zabbix | `zabbix` |
-| `GLPI_URL` | URL da API GLPI | `http://glpi/apirest.php` |
-| `GLPI_APP_TOKEN` | App token do GLPI | — |
-| `GLPI_USER_TOKEN` | User token do GLPI | — |
+| Variável | Descrição | Exemplo |
+|----------|-----------|---------|
+| `DATABASE_URL` | String de conexão do PostgreSQL | `postgresql://netbipi:...` |
+| `JWT_SECRET` | Chave JWT forte | `use-uma-chave-longa` |
+| `MOCK_INTEGRATIONS` | Usa mock ou integrações reais | `true` ou `false` |
+| `FRONTEND_URL` | Origem permitida no backend | `http://localhost` |
+| `ZABBIX_URL` | URL da API do Zabbix | `http://zabbix-web:8080/api_jsonrpc.php` |
+| `GLPI_URL` | URL da API do GLPI | `http://glpi/apirest.php` |
+| `GLPI_APP_TOKEN` | Token da aplicação GLPI | token da integração |
+| `GLPI_USER_TOKEN` | Token do usuário GLPI | token do usuário |
+
+---
+
+## Desenvolvimento Local
+
+### Backend
+
+```bash
+cd backend
+npm ci
+npm run dev
+```
+
+### Frontend
+
+```bash
+cd frontend
+npm ci
+npm run dev
+```
+
+Por padrão:
+
+- Backend: `http://localhost:3001`
+- Frontend: `http://localhost:5173`
+
+---
+
+## API Principal
+
+Rotas principais expostas pelo backend:
+
+```bash
+POST   /api/auth/login
+GET    /api/alerts
+POST   /api/alerts/sync-zabbix
+PUT    /api/alerts/:id/acknowledge
+GET    /api/tickets
+POST   /api/tickets
+POST   /api/tickets/from-alert/:id
+GET    /api/assets
+GET    /api/logs
+POST   /api/network/ping
+POST   /api/network/dns
+POST   /api/network/port
+GET    /api/knowledge
+GET    /api/reports/pdf
+GET    /api/reports/excel
+GET    /api/dashboard
+GET    /api/shift/summary
+GET    /api/cloud/status
+POST   /webhooks/zabbix
+```
 
 ---
 
 ## Estrutura do Projeto
 
-```
+```text
 netbipi/
-├── backend/                  # API REST + WebSocket
-│   └── src/
-│       ├── config/           # Banco de dados e variáveis
-│       ├── controllers/      # Lógica de negócio
-│       ├── integrations/     # Zabbix e GLPI
-│       ├── middlewares/      # Auth, error handler
-│       ├── routes/           # Endpoints da API
-│       ├── services/         # Escalada automática, auditoria
-│       └── socket/           # WebSocket (Socket.io)
-├── frontend/                 # Interface React
-│   └── src/
-│       ├── components/       # Componentes reutilizáveis
-│       ├── hooks/            # useSocket, etc.
-│       ├── pages/            # Páginas da aplicação
-│       ├── services/         # Chamadas à API
-│       └── store/            # Estado global (Zustand)
-├── database/
-│   ├── init.sql              # Schema + dados mock
-│   └── migrations/           # Migrações adicionais
-├── zabbix/
-│   ├── alertscripts/         # Scripts de alerta
-│   └── setup/                # Configuração automática
-├── glpi/setup/               # Configuração da API GLPI
-├── scripts/                  # Scripts utilitários
-├── docker-compose.yml        # Orquestração dos containers
-├── .env.example              # Template de variáveis
-├── INTEGRACAO.md             # Guia de integração
-└── netbipi.bat               # Gerenciador Windows
-```
-
----
-
-## API — Principais Endpoints
-
-```
-POST   /api/auth/login              Autenticação
-GET    /api/alerts                  Listar alertas
-POST   /api/alerts/sync-zabbix      Sincronizar com Zabbix
-PUT    /api/alerts/:id/acknowledge  Reconhecer alerta
-GET    /api/tickets                 Listar chamados
-POST   /api/tickets                 Criar chamado
-POST   /api/tickets/from-alert/:id  Criar chamado a partir de alerta
-GET    /api/assets                  Inventário de ativos
-GET    /api/logs                    Logs com filtros
-POST   /api/network/ping            Executar ping
-POST   /api/network/dns             DNS lookup
-POST   /api/network/port            Verificar porta TCP
-GET    /api/knowledge               Base de conhecimento
-GET    /api/reports/pdf             Exportar relatório PDF
-GET    /api/reports/excel           Exportar relatório Excel
-GET    /api/dashboard               Métricas do dashboard
-GET    /api/shift/summary           Resumo do turno atual
-GET    /api/cloud/status            Status AWS + Azure
-POST   /webhooks/zabbix             Receber alertas do Zabbix
+├── backend/              API REST + WebSocket
+├── frontend/             Interface React
+├── database/             Schema e migrações
+├── zabbix/               Scripts de integração
+├── glpi/                 Automação da API GLPI
+├── scripts/              Utilitários e automação
+├── screenshots/          Capturas para o README e LinkedIn
+├── docker-compose.yml    Orquestração dos serviços
+├── INTEGRACAO.md         Guia de setup das integrações
+├── LINKEDIN.md           Texto pronto para divulgar o projeto
+└── netbipi.bat           Menu de inicialização para Windows
 ```
 
 ---
@@ -281,43 +293,52 @@ POST   /webhooks/zabbix             Receber alertas do Zabbix
 ## Roadmap
 
 - [x] Dashboard operacional com métricas em tempo real
-- [x] Integração Zabbix (API + webhook)
-- [x] Integração GLPI (REST API)
+- [x] Integração Zabbix via API e webhook
+- [x] Integração GLPI via REST API
 - [x] Inventário de ativos com mapa visual
-- [x] Diagnóstico de rede (ping, DNS, porta, traceroute)
+- [x] Diagnóstico de rede no navegador
 - [x] Base de conhecimento com runbooks
 - [x] Relatórios PDF e Excel
-- [x] Modo Quiosque NOC
+- [x] Modo quiosque NOC
 - [x] PWA instalável
 - [x] Escalada automática de incidentes
-- [x] Dashboard por turno / passagem de plantão
-- [ ] Notificação por WhatsApp / Telegram
+- [x] Dashboard por turno e passagem de plantão
+- [ ] Alertas por WhatsApp ou Telegram
 - [ ] Envio de e-mail automático para alertas críticos
-- [ ] Execução remota de scripts (Runbook Automation)
+- [ ] Execução remota de scripts
 - [ ] Janelas de manutenção programada
-- [ ] Monitor de uptime independente
-- [ ] Autenticação via Active Directory (LDAP)
-- [ ] Multi-empresa / Multi-tenant
+- [ ] Autenticação via Active Directory
+- [ ] Multi-tenant
 - [ ] Análise de tendência e predição de falhas
 
 ---
 
-## Contribuindo
+## Publicação
 
-1. Faça um fork do projeto
-2. Crie uma branch para sua feature: `git checkout -b feature/minha-feature`
-3. Commit suas mudanças: `git commit -m 'feat: adiciona minha feature'`
-4. Push para a branch: `git push origin feature/minha-feature`
-5. Abra um Pull Request
+Quer postar o projeto no LinkedIn?
+
+- Use [LINKEDIN.md](LINKEDIN.md) como base do texto
+- Use as imagens da pasta [screenshots/](screenshots/)
+- Destaque a combinação de monitoramento, service desk e open source
+
+---
+
+## Comunidade
+
+- Leia [CONTRIBUTING.md](CONTRIBUTING.md) antes de abrir um PR
+- Consulte [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) para o comportamento esperado na comunidade
+- Use as issue templates em [.github/ISSUE_TEMPLATE/](.github/ISSUE_TEMPLATE/)
+- A política de segurança está em [SECURITY.md](SECURITY.md)
+- Dependências são acompanhadas por Dependabot em [.github/dependabot.yml](.github/dependabot.yml)
 
 ---
 
 ## Licença
 
-Distribuído sob a licença MIT. Veja [LICENSE](LICENSE) para mais informações.
+Distribuído sob a licença MIT. Veja [LICENSE](LICENSE).
 
 ---
 
 <div align="center">
-Feito com ❤️ para equipes de suporte técnico e infraestrutura
+Feito para equipes de suporte, infraestrutura e operações que precisam de visão única do ambiente.
 </div>
