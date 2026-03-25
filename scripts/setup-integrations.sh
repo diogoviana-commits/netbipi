@@ -16,6 +16,10 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+ZABBIX_WEBHOOK_SECRET="${ZABBIX_WEBHOOK_SECRET:-CHANGE_ME_ZABBIX_WEBHOOK_SECRET}"
+GLPI_DB_PASSWORD="${GLPI_DB_PASSWORD:-CHANGE_ME_GLPI_DB_PASSWORD}"
+GLPI_APP_TOKEN="${GLPI_APP_TOKEN:-CHANGE_ME_GLPI_APP_TOKEN}"
+GLPI_USER_TOKEN="${GLPI_USER_TOKEN:-CHANGE_ME_GLPI_USER_TOKEN}"
 
 echo ""
 echo "╔══════════════════════════════════════════════════════════╗"
@@ -69,10 +73,10 @@ if command -v python3 &>/dev/null; then
     python3 "${PROJECT_DIR}/zabbix/setup/configure_zabbix.py" \
         --url "http://localhost:8080/api_jsonrpc.php" \
         --netbipi-url "http://backend:3001" \
-        --secret "netbipi-webhook-secret-2024"
+        --secret "${ZABBIX_WEBHOOK_SECRET}"
 else
     echo "⚠️  Python3 não encontrado. Configure o Zabbix manualmente:"
-    echo "   1. Acesse http://localhost:8080 (Admin/zabbix)"
+    echo "   1. Acesse http://localhost:8080 e use as credenciais definidas em ZABBIX_USER/ZABBIX_PASSWORD"
     echo "   2. Vá em Administration > Media types"
     echo "   3. Crie um Webhook apontando para http://backend:3001/webhooks/zabbix"
 fi
@@ -90,18 +94,18 @@ echo ""
 docker exec -e GLPI_DB_HOST=glpi-mariadb \
            -e GLPI_DB_PORT=3306 \
            -e GLPI_DB_USER=glpi \
-           -e GLPI_DB_PASSWORD=glpi_pass \
+           -e GLPI_DB_PASSWORD="${GLPI_DB_PASSWORD}" \
            -e GLPI_DB_NAME=glpi \
            netbipi-glpi-mariadb bash -c "
     which mysql && \
-    mysql -h localhost -u glpi -pglpi_pass glpi <<SQL
+    mysql -h localhost -u glpi -p\"${GLPI_DB_PASSWORD}\" glpi <<SQL
 UPDATE glpi_configs SET value = '1' WHERE context = 'core' AND name = 'enable_api';
 UPDATE glpi_configs SET value = '1' WHERE context = 'core' AND name = 'enable_api_login_credentials';
 UPDATE glpi_configs SET value = '1' WHERE context = 'core' AND name = 'enable_api_login_external_token';
 DELETE FROM glpi_apiclient WHERE name = 'NetBIPI Integration';
 INSERT INTO glpi_apiclient (entities_id, name, app_token, app_token_date, ipv4_range_start, ipv4_range_end, is_active, comment, date_creation, date_mod)
-VALUES (0, 'NetBIPI Integration', 'netbipi-glpi-app-token', NOW(), 0, 4294967295, 1, 'NetBIPI Hub', NOW(), NOW());
-UPDATE glpi_users SET api_token = 'netbipi-glpi-user-token', api_token_date = NOW() WHERE name IN ('glpi','admin') LIMIT 1;
+VALUES (0, 'NetBIPI Integration', '${GLPI_APP_TOKEN}', NOW(), 0, 4294967295, 1, 'NetBIPI Hub', NOW(), NOW());
+UPDATE glpi_users SET api_token = '${GLPI_USER_TOKEN}', api_token_date = NOW() WHERE name IN ('glpi','admin') LIMIT 1;
 SQL
 " 2>/dev/null || bash "${PROJECT_DIR}/glpi/setup/configure_glpi.sh"
 
@@ -115,12 +119,11 @@ echo ""
 echo "  🌐 Acesso aos serviços:"
 echo "     NetBIPI       → http://localhost"
 echo "     NetBIPI API   → http://localhost:3001/health"
-echo "     Zabbix        → http://localhost:8080  (Admin / zabbix)"
-echo "     GLPI          → http://localhost:8081  (glpi / glpi)"
+echo "     Zabbix        → http://localhost:8080  (configure via setup)"
+echo "     GLPI          → http://localhost:8081  (tokens gerados no setup)"
 echo ""
 echo "  🔑 Credenciais NetBIPI:"
-echo "     Admin         → admin@netbipi.local / admin123"
-echo "     Analista N1   → n1@netbipi.local    / analyst123"
+echo "     Contas demo definidas em database/init.sql"
 echo ""
 echo "  📝 Próximos passos:"
 echo "     1. Acesse o NetBIPI e verifique os alertas sincronizados"
@@ -130,8 +133,8 @@ echo "        as integrações reais"
 echo ""
 echo "  ⚙️  Para ativar integrações reais, edite o .env:"
 echo "     MOCK_INTEGRATIONS=false"
-echo "     GLPI_APP_TOKEN=netbipi-glpi-app-token"
-echo "     GLPI_USER_TOKEN=netbipi-glpi-user-token"
+echo "     GLPI_APP_TOKEN=<token-gerado>"
+echo "     GLPI_USER_TOKEN=<token-gerado>"
 echo ""
 echo "  🧪 Use MOCK_INTEGRATIONS=true apenas para demonstração local."
 echo ""

@@ -14,7 +14,7 @@
 #   GLPI_DB_HOST     - host do MariaDB (padrão: localhost)
 #   GLPI_DB_PORT     - porta do MariaDB (padrão: 3306)
 #   GLPI_DB_USER     - usuário (padrão: glpi)
-#   GLPI_DB_PASSWORD - senha (padrão: glpi_pass)
+#   GLPI_DB_PASSWORD - senha (padrão: CHANGE_ME_GLPI_DB_PASSWORD)
 #   GLPI_DB_NAME     - database (padrão: glpi)
 # ============================================================
 
@@ -23,11 +23,11 @@ set -e
 GLPI_DB_HOST="${GLPI_DB_HOST:-localhost}"
 GLPI_DB_PORT="${GLPI_DB_PORT:-3306}"
 GLPI_DB_USER="${GLPI_DB_USER:-glpi}"
-GLPI_DB_PASSWORD="${GLPI_DB_PASSWORD:-glpi_pass}"
+GLPI_DB_PASSWORD="${GLPI_DB_PASSWORD:-CHANGE_ME_GLPI_DB_PASSWORD}"
 GLPI_DB_NAME="${GLPI_DB_NAME:-glpi}"
 
-APP_TOKEN="netbipi-glpi-app-token-$(date +%s)"
-USER_TOKEN="netbipi-glpi-user-token-$(date +%s)"
+APP_TOKEN="demo-glpi-app-token-$(date +%s)"
+USER_TOKEN="demo-glpi-user-token-$(date +%s)"
 
 MYSQL_CMD="mysql -h ${GLPI_DB_HOST} -P ${GLPI_DB_PORT} -u ${GLPI_DB_USER} -p${GLPI_DB_PASSWORD} ${GLPI_DB_NAME}"
 
@@ -111,9 +111,8 @@ echo "  App Token  : ${APP_TOKEN}"
 echo "  User Token : ${USER_TOKEN}"
 echo "  GLPI URL   : http://localhost:8081"
 echo ""
-echo "  Credenciais padrão do GLPI:"
-echo "  Usuário : glpi"
-echo "  Senha   : glpi"
+echo "  Credenciais do GLPI:"
+echo "  Use as definidas pela sua imagem/instalação local."
 echo ""
 echo "  📋 Adicione ao seu .env ou docker-compose.yml:"
 echo ""

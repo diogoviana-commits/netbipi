@@ -138,13 +138,13 @@ CREATE INDEX IF NOT EXISTS idx_audit_log_action ON audit_log(action);
 -- ============================================================
 
 -- Users — hashes gerados via pgcrypto (crypt compativel com bcryptjs)
--- admin123 para o admin, analyst123 para os analistas
+-- Credencial demo local: NetBIPI@Demo2026
 INSERT INTO users (id, username, email, password_hash, full_name, role) VALUES
 (
   '00000000-0000-0000-0000-000000000001',
   'admin',
   'admin@netbipi.local',
-  crypt('admin123', gen_salt('bf', 10)),
+  crypt('NetBIPI@Demo2026', gen_salt('bf', 10)),
   'Administrador Sistema',
   'admin'
 ),
@@ -152,7 +152,7 @@ INSERT INTO users (id, username, email, password_hash, full_name, role) VALUES
   '00000000-0000-0000-0000-000000000002',
   'analyst_n1',
   'n1@netbipi.local',
-  crypt('analyst123', gen_salt('bf', 10)),
+  crypt('NetBIPI@Demo2026', gen_salt('bf', 10)),
   'Carlos Silva N1',
   'n1'
 ),
@@ -160,7 +160,7 @@ INSERT INTO users (id, username, email, password_hash, full_name, role) VALUES
   '00000000-0000-0000-0000-000000000003',
   'analyst_n2',
   'n2@netbipi.local',
-  crypt('analyst123', gen_salt('bf', 10)),
+  crypt('NetBIPI@Demo2026', gen_salt('bf', 10)),
   'Ana Rodrigues N2',
   'n2'
 )

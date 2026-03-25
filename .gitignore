@@ -17,14 +17,55 @@ build/
 .env
 .env.local
 .env.*.local
+.env.development
+.env.production
+.env.test
+.env.staging
+.envrc
 backend/.env
 frontend/.env
+backend/.env.development
+backend/.env.production
+backend/.env.test
+frontend/.env.development
+frontend/.env.production
+frontend/.env.test
 *.env
 
-# Tokens gerados (NUNCA subir)
+# Segredos e credenciais locais (NUNCA subir)
+secrets/
+.secrets/
+secret/
+.secret/
+credentials/
+.credentials/
 glpi/setup/.tokens
+*.token
 *.tokens
 *.secret
+*.secrets
+*.credentials
+*.cred
+*.passwd
+*.password
+*.key
+*.pem
+*.crt
+*.cer
+*.csr
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.ovpn
+*.db
+*.sqlite
+*.sqlite3
+*.backup
+*.bak
+*.old
+*.orig
+.direnv/
 
 # Logs
 *.log

@@ -9,8 +9,8 @@ const path = require('path');
 const fs   = require('fs');
 
 const BASE_URL = 'http://localhost';
-const EMAIL    = 'admin@netbipi.local';
-const PASSWORD = 'admin123';
+const EMAIL    = process.env.NETBIPI_SCREENSHOT_EMAIL || 'admin@netbipi.local';
+const PASSWORD = process.env.NETBIPI_DEMO_PASSWORD || 'NetBIPI@Demo2026';
 const OUT_DIR  = path.join(__dirname, '..', 'screenshots');
 
 // Usa pushState para navegar SEM reload — mantém auth do React intacta

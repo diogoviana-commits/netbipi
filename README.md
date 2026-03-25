@@ -136,15 +136,11 @@ docker compose up -d
 
 Depois de alguns segundos, abra `http://localhost`.
 
-### Credenciais iniciais
+### Acesso inicial
 
-| Usuário | E-mail | Senha |
-|---------|--------|-------|
-| Administrador | `admin@netbipi.local` | `admin123` |
-| Analista N1 | `n1@netbipi.local` | `analyst123` |
-| Analista N2 | `n2@netbipi.local` | `analyst123` |
-
-> Altere as senhas antes de expor o projeto em qualquer ambiente público.
+O seed local cria contas de demonstração para ambiente de laboratório.
+Antes de publicar o projeto em um ambiente real, ajuste o seed em
+`database/init.sql` e as variáveis de ambiente em `.env`.
 
 ---
 
@@ -166,12 +162,12 @@ docker compose --profile itsm up -d
 docker compose --profile full up -d
 ```
 
-| Serviço | URL | Credenciais iniciais |
-|---------|-----|--------------------|
-| NetBIPI | http://localhost | admin@netbipi.local / admin123 |
-| NetBIPI API | http://localhost:3001 | - |
-| Zabbix | http://localhost:8080 | Admin / zabbix |
-| GLPI | http://localhost:8081 | glpi / glpi |
+| Serviço | URL | Observação |
+|---------|-----|-----------|
+| NetBIPI | http://localhost | Contas demo no seed local |
+| NetBIPI API | http://localhost:3001 | Health check em `/health` |
+| Zabbix | http://localhost:8080 | Configure via `scripts/setup-integrations.sh` |
+| GLPI | http://localhost:8081 | Tokens gerados no setup |
 
 ---
 
@@ -210,11 +206,23 @@ Copie [`.env.example`](.env.example) para `.env` e ajuste conforme o ambiente.
 | Variável | Descrição | Exemplo |
 |----------|-----------|---------|
 | `DATABASE_URL` | String de conexão do PostgreSQL | `postgresql://netbipi:...` |
+| `POSTGRES_PASSWORD` | Senha usada pelo Postgres e pelo backend | valor do `.env` |
 | `JWT_SECRET` | Chave JWT forte | `use-uma-chave-longa` |
 | `MOCK_INTEGRATIONS` | Ativa o modo de demonstração local | `true` ou `false` |
 | `FRONTEND_URL` | Origem permitida no backend | `http://localhost` |
 | `ZABBIX_URL` | URL da API do Zabbix | `http://zabbix-web:8080/api_jsonrpc.php` |
+| `ZABBIX_USER` | Usuário da API do Zabbix | `Admin` |
+| `ZABBIX_PASSWORD` | Senha da API do Zabbix | `definida no .env` |
+| `ZABBIX_WEBHOOK_SECRET` | Secret compartilhado do webhook | valor do `.env` |
+| `ZABBIX_DB_NAME` | Banco do Zabbix | `zabbix` |
+| `ZABBIX_DB_USER` | Usuário do banco do Zabbix | `zabbix` |
+| `ZABBIX_DB_PASSWORD` | Senha do banco do Zabbix | valor do `.env` |
+| `ZABBIX_DB_ROOT_PASSWORD` | Senha root do banco do Zabbix | valor do `.env` |
 | `GLPI_URL` | URL da API do GLPI | `http://glpi/apirest.php` |
+| `GLPI_DB_NAME` | Banco do GLPI | `glpi` |
+| `GLPI_DB_USER` | Usuário do banco do GLPI | `glpi` |
+| `GLPI_DB_PASSWORD` | Senha do banco do GLPI | valor do `.env` |
+| `GLPI_DB_ROOT_PASSWORD` | Senha root do banco do GLPI | valor do `.env` |
 | `GLPI_APP_TOKEN` | Token da aplicação GLPI | token da integração |
 | `GLPI_USER_TOKEN` | Token do usuário GLPI | token do usuário |
 

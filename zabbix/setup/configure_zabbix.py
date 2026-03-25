@@ -19,6 +19,7 @@ O script realiza:
 
 import argparse
 import json
+import os
 import sys
 import time
 
@@ -34,9 +35,9 @@ except ImportError:
 # ============================================================
 DEFAULT_ZABBIX_URL = "http://localhost:8080/api_jsonrpc.php"
 DEFAULT_NETBIPI_URL = "http://backend:3001"
-DEFAULT_WEBHOOK_SECRET = "netbipi-webhook-secret-2024"
-ZABBIX_USER = "Admin"
-ZABBIX_PASSWORD = "zabbix"
+DEFAULT_WEBHOOK_SECRET = os.getenv("ZABBIX_WEBHOOK_SECRET", "CHANGE_ME_ZABBIX_WEBHOOK_SECRET")
+ZABBIX_USER = os.getenv("ZABBIX_USER", "Admin")
+ZABBIX_PASSWORD = os.getenv("ZABBIX_PASSWORD", "CHANGE_ME_ZABBIX_PASSWORD")
 
 # ============================================================
 # Webhook JavaScript for Zabbix Media Type
@@ -154,6 +155,10 @@ def configure(zabbix_url: str, netbipi_url: str, webhook_secret: str):
 
     if not wait_for_zabbix(api):
         print("❌ Zabbix não ficou disponível. Verifique os containers.")
+        sys.exit(1)
+
+    if not ZABBIX_PASSWORD or ZABBIX_PASSWORD.startswith("CHANGE_ME_"):
+        print("❌ Defina ZABBIX_PASSWORD com a senha real do Zabbix antes de executar este script.")
         sys.exit(1)
 
     # --- Login ---
@@ -305,9 +310,9 @@ def configure(zabbix_url: str, netbipi_url: str, webhook_secret: str):
     print(f"  Secret     : {webhook_secret}")
     print(f"  Zabbix UI  : {zabbix_url.replace('/api_jsonrpc.php', '')}")
     print("")
-    print("  Credenciais padrão do Zabbix:")
-    print("  Usuário : Admin")
-    print("  Senha   : zabbix")
+    print("  Credenciais do Zabbix:")
+    print("  Usuário : definido em ZABBIX_USER")
+    print("  Senha   : definida em ZABBIX_PASSWORD")
     print("")
     print("  ⚠️  IMPORTANTE: Altere a senha padrão do Zabbix após o primeiro acesso!")
     print("="*60)

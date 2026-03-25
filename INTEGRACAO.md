@@ -57,8 +57,7 @@ bash scripts/setup-integrations.sh
 
 ### Acesso
 - **URL:** http://localhost:8080
-- **Usuário:** `Admin`
-- **Senha:** `zabbix`
+- **Acesso inicial:** definido pelo deploy local do Zabbix
 
 ### Configuração Automática (recomendado)
 ```bash
@@ -84,7 +83,7 @@ python3 zabbix/setup/configure_zabbix.py \
      | Nome | Valor |
      |------|-------|
      | `netbipi_url` | `http://backend:3001` |
-     | `webhook_secret` | `netbipi-webhook-secret-2024` |
+      | `webhook_secret` | `CHANGE_ME_ZABBIX_WEBHOOK_SECRET` |
      | `eventid` | `{EVENT.ID}` |
      | `hostname` | `{HOST.NAME}` |
      | `trigger_name` | `{TRIGGER.NAME}` |
@@ -122,8 +121,7 @@ return resp;
 
 ### Acesso
 - **URL:** http://localhost:8081
-- **Usuário:** `glpi`
-- **Senha:** `glpi`
+- **Acesso inicial:** definido pelo wizard de instalação do GLPI
 
 > **Atenção:** Na primeira execução, acesse http://localhost:8081 e siga o wizard de instalação antes de executar o script de configuração.
 
@@ -157,8 +155,8 @@ Após configurar Zabbix e GLPI, edite o `docker-compose.yml` ou `.env`:
 
 ```env
 MOCK_INTEGRATIONS=false
-GLPI_APP_TOKEN=netbipi-glpi-app-token
-GLPI_USER_TOKEN=netbipi-glpi-user-token
+GLPI_APP_TOKEN=<token-gerado>
+GLPI_USER_TOKEN=<token-gerado>
 ```
 
 Reinicie o backend:
@@ -177,7 +175,7 @@ curl http://localhost:3001/health
 # Teste webhook Zabbix
 curl -X POST http://localhost:3001/webhooks/zabbix \
   -H "Content-Type: application/json" \
-  -H "X-Webhook-Secret: netbipi-webhook-secret-2024" \
+  -H "X-Webhook-Secret: CHANGE_ME_ZABBIX_WEBHOOK_SECRET" \
   -d '{
     "eventid": "test-001",
     "hostname": "test-server",

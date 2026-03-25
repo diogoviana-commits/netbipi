@@ -4,6 +4,11 @@ setlocal EnableExtensions DisableDelayedExpansion
 cd /d "%~dp0"
 set "DOCKER_CLIENT_TIMEOUT=15"
 set "COMPOSE_HTTP_TIMEOUT=15"
+if not defined NETBIPI_DEMO_PASSWORD set "NETBIPI_DEMO_PASSWORD=NetBIPI@Demo2026"
+if not defined GLPI_DB_PASSWORD set "GLPI_DB_PASSWORD=CHANGE_ME_GLPI_DB_PASSWORD"
+if not defined GLPI_APP_TOKEN set "GLPI_APP_TOKEN=CHANGE_ME_GLPI_APP_TOKEN"
+if not defined GLPI_USER_TOKEN set "GLPI_USER_TOKEN=CHANGE_ME_GLPI_USER_TOKEN"
+if not defined ZABBIX_WEBHOOK_SECRET set "ZABBIX_WEBHOOK_SECRET=CHANGE_ME_ZABBIX_WEBHOOK_SECRET"
 
 set "PROJECT_NAME="
 for %%I in ("%CD%") do set "PROJECT_NAME=%%~nxI"
@@ -207,7 +212,7 @@ if errorlevel 1 goto COMPOSE_FAILED
 echo.
 echo  Servicos disponiveis:
 echo    NetBIPI  -^> http://localhost
-echo    Zabbix   -^> http://localhost:8080  ^(Admin / zabbix^)
+echo    Zabbix   -^> http://localhost:8080  ^(configure via setup^)
 echo.
 call :OpenBrowser http://localhost
 call :WaitBackend
@@ -224,7 +229,7 @@ if errorlevel 1 goto COMPOSE_FAILED
 echo.
 echo  Servicos disponiveis:
 echo    NetBIPI  -^> http://localhost
-echo    GLPI     -^> http://localhost:8081  ^(glpi / glpi^)
+echo    GLPI     -^> http://localhost:8081  ^(tokens gerados no setup^)
 echo.
 call :OpenBrowser http://localhost
 call :WaitBackend
@@ -244,9 +249,9 @@ echo  ================================================================
 echo   Todos os servicos iniciados^!
 echo  ================================================================
 echo.
-echo    NetBIPI  -^> http://localhost         ^(admin@netbipi.local / admin123^)
-echo    Zabbix   -^> http://localhost:8080    ^(Admin / zabbix^)
-echo    GLPI     -^> http://localhost:8081    ^(glpi / glpi^)
+echo    NetBIPI  -^> http://localhost         ^(contas demo no seed local^)
+echo    Zabbix   -^> http://localhost:8080    ^(acesso local configurado no setup^)
+echo    GLPI     -^> http://localhost:8081    ^(tokens gerados no setup^)
 echo    API      -^> http://localhost:3001/health
 echo.
 echo  Dica: Use a opcao [5] para configurar as integracoes automaticamente.
@@ -306,7 +311,7 @@ if errorlevel 1 (
     echo.
 ) else (
     echo  [2/2] Configurando GLPI via Docker...
-    docker exec netbipi-glpi-mariadb mysql -u glpi -pglpi_pass glpi -e "UPDATE glpi_configs SET value='1' WHERE context='core' AND name='enable_api'; UPDATE glpi_configs SET value='1' WHERE context='core' AND name='enable_api_login_credentials'; UPDATE glpi_configs SET value='1' WHERE context='core' AND name='enable_api_login_external_token'; DELETE FROM glpi_apiclient WHERE name='NetBIPI Integration'; INSERT INTO glpi_apiclient (entities_id,name,app_token,app_token_date,ipv4_range_start,ipv4_range_end,is_active,comment,date_creation,date_mod) VALUES (0,'NetBIPI Integration','netbipi-glpi-app-token',NOW(),0,4294967295,1,'NetBIPI Hub',NOW(),NOW()); UPDATE glpi_users SET api_token='netbipi-glpi-user-token',api_token_date=NOW() WHERE name IN ('glpi','admin') LIMIT 1;" 2>nul
+    docker exec netbipi-glpi-mariadb mysql -u glpi -p%GLPI_DB_PASSWORD% glpi -e "UPDATE glpi_configs SET value='1' WHERE context='core' AND name='enable_api'; UPDATE glpi_configs SET value='1' WHERE context='core' AND name='enable_api_login_credentials'; UPDATE glpi_configs SET value='1' WHERE context='core' AND name='enable_api_login_external_token'; DELETE FROM glpi_apiclient WHERE name='NetBIPI Integration'; INSERT INTO glpi_apiclient (entities_id,name,app_token,app_token_date,ipv4_range_start,ipv4_range_end,is_active,comment,date_creation,date_mod) VALUES (0,'NetBIPI Integration','%GLPI_APP_TOKEN%',NOW(),0,4294967295,1,'NetBIPI Hub',NOW(),NOW()); UPDATE glpi_users SET api_token='%GLPI_USER_TOKEN%',api_token_date=NOW() WHERE name IN ('glpi','admin') LIMIT 1;" 2>nul
     if errorlevel 1 (
         echo  [AVISO] GLPI pode nao estar pronto ainda. Tente novamente em 2 minutos.
     ) else (
@@ -326,8 +331,8 @@ echo  ================================================================
 echo.
 echo   Para ativar as integracoes reais, mantenha MOCK_INTEGRATIONS=false:
 echo     MOCK_INTEGRATIONS=false
-echo     GLPI_APP_TOKEN=netbipi-glpi-app-token
-echo     GLPI_USER_TOKEN=netbipi-glpi-user-token
+echo     GLPI_APP_TOKEN=^<token-gerado^>
+echo     GLPI_USER_TOKEN=^<token-gerado^>
 echo.
 echo   Use MOCK_INTEGRATIONS=true apenas para laboratorio sem Zabbix/GLPI.
 echo.
@@ -433,9 +438,7 @@ if errorlevel 1 goto COMPOSE_FAILED
 echo.
 echo  ================================================================
 echo   Banco resetado^! Credenciais:
-echo     admin@netbipi.local  /  admin123
-echo     n1@netbipi.local     /  analyst123
-echo     n2@netbipi.local     /  analyst123
+echo     contas demo definidas em database\init.sql
 echo  ================================================================
 echo.
 call :OpenBrowser http://localhost
@@ -473,9 +476,7 @@ if errorlevel 1 (
 echo.
 echo  ================================================================
 echo   Credenciais de acesso:
-echo     admin@netbipi.local   /  admin123
-echo     n1@netbipi.local      /  analyst123
-echo     n2@netbipi.local      /  analyst123
+echo     contas demo definidas em database\init.sql
 echo  ================================================================
 echo.
 call :OpenBrowser http://localhost
