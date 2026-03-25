@@ -23,7 +23,7 @@ echo   [3] Iniciar NetBIPI + GLPI
 echo   [4] Iniciar TUDO  (NetBIPI + Zabbix + GLPI)
 echo   [5] Configurar integracoes  (Zabbix + GLPI)
 echo   [6] Ver status dos containers
-echo   [7] Ver logs do backend
+echo   [7] Ver ultimos logs do backend
 echo   [8] Parar todos os servicos
 echo   [9] Reiniciar e reconstruir backend
 echo   [F] Corrigir senhas de acesso
@@ -274,10 +274,23 @@ goto MENU
 :: ============================================================
 :LOGS_BACKEND
 :: ============================================================
+call :VERIFICAR_DOCKER
 echo.
-echo  Exibindo logs do backend ^(Ctrl+C para sair^)...
+echo  Exibindo as ultimas 100 linhas do backend...
 echo.
-docker logs netbipi-backend --follow --tail 100
+docker ps -a --filter "name=netbipi-backend" --format "{{.Names}}" | findstr /i "netbipi-backend" >nul
+if %ERRORLEVEL% neq 0 (
+    echo  [AVISO] Container netbipi-backend nao encontrado.
+    echo          Inicie o projeto pela opcao [1], [2], [3] ou [4].
+    echo.
+    pause
+    goto MENU
+)
+
+docker logs --tail 100 netbipi-backend 2>&1
+echo.
+echo  Pressione qualquer tecla para voltar ao menu.
+pause >nul
 goto MENU
 
 :: ============================================================
